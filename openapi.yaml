@@ -2115,6 +2115,10 @@ components:
           type: array
           items:
             type: object
+            required:
+              - index
+              - message
+              - finish_reason
             properties:
               index:
                 type: integer
@@ -2158,6 +2162,8 @@ components:
           type: array
           items:
             type: object
+            required:
+              - index
             properties:
               index:
                 type: integer
@@ -2236,6 +2242,11 @@ components:
           type: array
           items:
             type: object
+            required:
+              - text
+              - index
+              - logprobs
+              - finish_reason
             properties:
               text:
                 type: string
