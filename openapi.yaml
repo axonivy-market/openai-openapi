@@ -85,7 +85,7 @@ paths:
                     model: 'gpt-3.5-turbo',
                   });
 
-                  console.log(completion.id);
+                  console.log(completion.choices[0]);
                 }
 
                 main();
@@ -378,7 +378,7 @@ paths:
                   instruction: 'Fix the spelling mistakes.',
                 });
 
-                console.log(edit.object);
+                console.log(edit);
               }
 
               main();
@@ -449,7 +449,7 @@ paths:
               async function main() {
                 const image = await openai.images.generate({ prompt: 'A cute baby sea otter' });
 
-                console.log(image.created);
+                console.log(image.data);
               }
               main();
           response: |
@@ -577,15 +577,17 @@ paths:
                 size="1024x1024"
               )
             node.js: |-
-              import OpenAI, { toFile } from 'openai';
+              import fs from 'fs';
+              import OpenAI from 'openai';
+
               const openai = new OpenAI();
 
               async function main() {
                 const image = await openai.images.createVariation({
-                  image: await toFile(Buffer.from('# my file contents'), 'README.md'),
+                  image: fs.createReadStream('otter.png'),
                 });
 
-                console.log(image.created);
+                console.log(image.data);
               }
               main();
           response: |
@@ -717,6 +719,7 @@ paths:
             node: |-
               import fs from 'fs';
               import OpenAI from 'openai';
+
               const openai = new OpenAI();
 
               async function main() {
@@ -1105,6 +1108,7 @@ paths:
               openai.FineTune.create(training_file="file-XGinujblHPwGLSztz8cPS8XY")
             node.js: |
               import OpenAI from 'openai';
+
               const openai = new OpenAI();
 
               async function main() {
@@ -1375,6 +1379,7 @@ paths:
               openai.FineTune.cancel(id="ft-AF1WoRqd3aJAHsqc9NY7iL8F")
             node.js: |-
               import OpenAI from 'openai';
+
               const openai = new OpenAI();
 
               async function main() {
@@ -1462,6 +1467,7 @@ paths:
               openai.FineTune.list_events(id="ft-AF1WoRqd3aJAHsqc9NY7iL8F")
             node.js: |-
               import OpenAI from 'openai';
+
               const openai = new OpenAI();
 
               async function main() {
@@ -1609,6 +1615,7 @@ paths:
               openai.Model.retrieve("VAR_model_id")
             node.js: |-
               import OpenAI from 'openai';
+
               const openai = new OpenAI();
 
               async function main() {
