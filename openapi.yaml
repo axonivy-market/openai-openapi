@@ -3641,7 +3641,8 @@ paths:
               "instructions": "You are a helpful assistant.",
               "tools": [],
               "file_ids": [],
-              "metadata": {}
+              "metadata": {},
+              "usage": null
             }
 
   /threads/{thread_id}/runs:
@@ -3750,7 +3751,12 @@ paths:
                     "file-abc123",
                     "file-abc456"
                   ],
-                  "metadata": {}
+                  "metadata": {},
+                  "usage": {
+                    "prompt_tokens": 123,
+                    "completion_tokens": 456,
+                    "total_tokens": 579
+                  }
                 },
                 {
                   "id": "run_abc456",
@@ -3776,7 +3782,12 @@ paths:
                     "file-abc123",
                     "file-abc456"
                   ],
-                  "metadata": {}
+                  "metadata": {},
+                  "usage": {
+                    "prompt_tokens": 123,
+                    "completion_tokens": 456,
+                    "total_tokens": 579
+                  }
                 }
               ],
               "first_id": "run_abc123",
@@ -3872,7 +3883,8 @@ paths:
                 "file-abc123",
                 "file-abc456"
               ],
-              "metadata": {}
+              "metadata": {},
+              "usage": null
             }
 
   /threads/{thread_id}/runs/{run_id}:
@@ -3961,7 +3973,12 @@ paths:
                 "file-abc123",
                 "file-abc456"
               ],
-              "metadata": {}
+              "metadata": {},
+              "usage": {
+                "prompt_tokens": 123,
+                "completion_tokens": 456,
+                "total_tokens": 579
+              }
             }
     post:
       operationId: modifyRun
@@ -4068,6 +4085,11 @@ paths:
               ],
               "metadata": {
                 "user_id": "user_abc123"
+              },
+              "usage": {
+                "prompt_tokens": 123,
+                "completion_tokens": 456,
+                "total_tokens": 579
               }
             }
 
@@ -4207,7 +4229,8 @@ paths:
                 }
               ],
               "file_ids": [],
-              "metadata": {}
+              "metadata": {},
+              "usage": null
             }
 
   /threads/{thread_id}/runs/{run_id}/cancel:
@@ -4294,7 +4317,8 @@ paths:
                 }
               ],
               "file_ids": [],
-              "metadata": {}
+              "metadata": {},
+              "usage": null
             }
 
   /threads/{thread_id}/runs/{run_id}/steps:
@@ -4404,6 +4428,11 @@ paths:
                     "message_creation": {
                       "message_id": "msg_abc123"
                     }
+                  },
+                  "usage": {
+                    "prompt_tokens": 123,
+                    "completion_tokens": 456,
+                    "total_tokens": 579
                   }
                 }
               ],
@@ -4500,6 +4529,11 @@ paths:
                 "message_creation": {
                   "message_id": "msg_abc123"
                 }
+              },
+              "usage": {
+                "prompt_tokens": 123,
+                "completion_tokens": 456,
+                "total_tokens": 579
               }
             }
 
@@ -7182,6 +7216,25 @@ components:
         - completion_tokens
         - total_tokens
 
+    AssistantsCompletionUsage:
+      type: object
+      description: Usage statistics for a [Run](/docs/api-reference/runs/object) or [RunStep](rdocs/api-reference/runs/step-object) object. If the parent resources is still pending, this value will be null.
+      properties:
+        completion_tokens:
+          type: integer
+          description: Number of tokens in the used in the parent Run or RunStep.
+        prompt_tokens:
+          type: integer
+          description: Number of prompt tokens used in the parent Run or RunStep.
+        total_tokens:
+          type: integer
+          description: Total number of tokens used (prompt + completion).
+      required:
+        - prompt_tokens
+        - completion_tokens
+        - total_tokens
+      nullable: true
+
     AssistantObject:
       type: object
       title: Assistant
@@ -7558,6 +7611,8 @@ components:
           type: object
           x-oaiTypeLabel: map
           nullable: true
+        usage:
+          $ref: "#/components/schemas/AssistantsCompletionUsage"
       required:
         - id
         - object
@@ -7577,6 +7632,7 @@ components:
         - tools
         - file_ids
         - metadata
+        - usage
       x-oaiMeta:
         name: The run object
         beta: true
@@ -7598,7 +7654,12 @@ components:
             "instructions": null,
             "tools": [{"type": "retrieval"}, {"type": "code_interpreter"}],
             "file_ids": [],
-            "metadata": {}
+            "metadata": {},
+            "usage": {
+              "prompt_tokens": 123,
+              "completion_tokens": 456,
+              "total_tokens": 579
+            }
           }
     CreateRunRequest:
       type: object
@@ -8220,6 +8281,8 @@ components:
           type: object
           x-oaiTypeLabel: map
           nullable: true
+        usage:
+          $ref: "#/components/schemas/AssistantsCompletionUsage"
       required:
         - id
         - object
@@ -8236,6 +8299,7 @@ components:
         - failed_at
         - completed_at
         - metadata
+        - usage
       x-oaiMeta:
         name: The run step object
         beta: true
