@@ -16520,7 +16520,7 @@ components:
                                 "name": "First Last",
                                 "email": "user@example.com",
                                 "role": "owner",
-                                "added_at": 1711471533
+                                "created_at": 1711471533
                             }
                         }
                     }
