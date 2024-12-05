@@ -4127,7 +4127,7 @@ paths:
                         "end_time": 1730505600,
                         "results": [
                             {
-                                "object": "orgainzation.costs.result",
+                                "object": "organization.costs.result",
                                 "amount": {
                                     "value": 0.06,
                                     "currency": "usd"
@@ -5744,7 +5744,7 @@ paths:
                         "end_time": 1730505600,
                         "results": [
                             {
-                                "object": "orgainzation.usage.audio_transcriptions.result",
+                                "object": "organization.usage.audio_transcriptions.result",
                                 "seconds": 20,
                                 "num_model_requests": 1,
                                 "project_id": null,
@@ -5857,7 +5857,7 @@ paths:
                         "end_time": 1730505600,
                         "results": [
                             {
-                                "object": "orgainzation.usage.code_interpreter_sessions.result",
+                                "object": "organization.usage.code_interpreter_sessions.result",
                                 "sessions": 1,
                                 "project_id": null
                             }
@@ -6002,7 +6002,7 @@ paths:
                         "end_time": 1730505600,
                         "results": [
                             {
-                                "object": "orgainzation.usage.completions.result",
+                                "object": "organization.usage.completions.result",
                                 "input_tokens": 1000,
                                 "output_tokens": 500,
                                 "input_cached_tokens": 800,
@@ -6145,7 +6145,7 @@ paths:
                         "end_time": 1730505600,
                         "results": [
                             {
-                                "object": "orgainzation.usage.embeddings.result",
+                                "object": "organization.usage.embeddings.result",
                                 "input_tokens": 16,
                                 "num_model_requests": 2,
                                 "project_id": null,
@@ -6317,7 +6317,7 @@ paths:
                         "end_time": 1730505600,
                         "results": [
                             {
-                                "object": "orgainzation.usage.images.result",
+                                "object": "organization.usage.images.result",
                                 "images": 2,
                                 "num_model_requests": 2,
                                 "size": null,
@@ -6459,7 +6459,7 @@ paths:
                         "end_time": 1730505600,
                         "results": [
                             {
-                                "object": "orgainzation.usage.moderations.result",
+                                "object": "organization.usage.moderations.result",
                                 "input_tokens": 16,
                                 "num_model_requests": 2,
                                 "project_id": null,
@@ -6571,7 +6571,7 @@ paths:
                         "end_time": 1730505600,
                         "results": [
                             {
-                                "object": "orgainzation.usage.vector_stores.result",
+                                "object": "organization.usage.vector_stores.result",
                                 "usage_bytes": 1024,
                                 "project_id": null
                             }
@@ -12917,7 +12917,7 @@ components:
         name: Costs object
         example: |
           {
-              "object": "orgainzation.costs.result",
+              "object": "organization.costs.result",
               "amount": {
                 "value": 0.06,
                 "currency": "usd"
@@ -23231,7 +23231,7 @@ components:
         name: Audio speeches usage object
         example: |
           {
-              "object": "orgainzation.usage.audio_speeches.result",
+              "object": "organization.usage.audio_speeches.result",
               "characters": 45,
               "num_model_requests": 1,
               "project_id": "proj_abc",
@@ -23278,7 +23278,7 @@ components:
         name: Audio transcriptions usage object
         example: |
           {
-              "object": "orgainzation.usage.audio_transcriptions.result",
+              "object": "organization.usage.audio_transcriptions.result",
               "seconds": 10,
               "num_model_requests": 1,
               "project_id": "proj_abc",
@@ -23309,7 +23309,7 @@ components:
         name: Code interpreter sessions usage object
         example: |
           {
-              "object": "orgainzation.usage.code_interpreter_sessions.result",
+              "object": "organization.usage.code_interpreter_sessions.result",
               "sessions": 1,
               "project_id": "proj_abc"
           }
@@ -23363,7 +23363,7 @@ components:
         name: Completions usage object
         example: |
           {
-              "object": "orgainzation.usage.completions.result",
+              "object": "organization.usage.completions.result",
               "input_tokens": 5000,
               "output_tokens": 1000,
               "input_cached_tokens": 4000,
@@ -23412,7 +23412,7 @@ components:
         name: Embeddings usage object
         example: |
           {
-              "object": "orgainzation.usage.embeddings.result",
+              "object": "organization.usage.embeddings.result",
               "input_tokens": 20,
               "num_model_requests": 2,
               "project_id": "proj_abc",
@@ -23467,7 +23467,7 @@ components:
         name: Images usage object
         example: |
           {
-              "object": "orgainzation.usage.images.result",
+              "object": "organization.usage.images.result",
               "images": 2,
               "num_model_requests": 2,
               "size": "1024x1024",
@@ -23515,7 +23515,7 @@ components:
         name: Moderations usage object
         example: |
           {
-              "object": "orgainzation.usage.moderations.result",
+              "object": "organization.usage.moderations.result",
               "input_tokens": 20,
               "num_model_requests": 2,
               "project_id": "proj_abc",
@@ -23594,7 +23594,7 @@ components:
         name: Vector stores usage object
         example: |
           {
-              "object": "orgainzation.usage.vector_stores.result",
+              "object": "organization.usage.vector_stores.result",
               "usage_bytes": 1024,
               "project_id": "proj_abc"
           }
