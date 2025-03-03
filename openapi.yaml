@@ -11684,9 +11684,9 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
       required:
         - id
         - object
@@ -11901,13 +11901,13 @@ components:
         partially cut off if `finish_reason="length"`, which indicates the
         generation exceeded `max_tokens` or the conversation exceeded the max
         context length.
-      oneOf:
-        - type: string
-          description: |
-            `auto` is the default value
-          enum:
-            - auto
-          x-stainless-const: true
+      # oneOf:
+      type: string
+      # description: |
+      #   `auto` is the default value
+      enum:
+        - auto
+      x-stainless-const: true
         # - $ref: "#/components/schemas/ResponseFormatText"
         # - $ref: "#/components/schemas/ResponseFormatJsonObject"
         # - $ref: "#/components/schemas/ResponseFormatJsonSchema"
@@ -11928,18 +11928,18 @@ components:
         Specifying a particular tool like `{"type": "file_search"}` or `{"type":
         "function", "function": {"name": "my_function"}}` forces the model to
         call that tool.
-      oneOf:
-        - type: string
-          description: >
-            `none` means the model will not call any tools and instead generates
-            a message. `auto` means the model can pick between generating a
-            message or calling one or more tools. `required` means the model
-            must call one or more tools before responding to the user.
-          enum:
-            - none
-            - auto
-            - required
-        - $ref: "#/components/schemas/AssistantsNamedToolChoice"
+      # oneOf:
+      type: string
+      # description: >
+      #   `none` means the model will not call any tools and instead generates
+      #   a message. `auto` means the model can pick between generating a
+      #   message or calling one or more tools. `required` means the model
+      #   must call one or more tools before responding to the user.
+      enum:
+        - none
+        - auto
+        - required
+        # - $ref: "#/components/schemas/AssistantsNamedToolChoice"
       x-oaiExpandable: true
     AssistantsNamedToolChoice:
       type: object
@@ -13701,9 +13701,9 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
       required:
         - model
     CreateChatCompletionFunctionResponse:
@@ -16224,15 +16224,15 @@ components:
             - $ref: "#/components/schemas/TruncationObject"
             - nullable: true
         tool_choice:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
+          nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
       required:
         - assistant_id
     CreateSpeechRequest:
@@ -16452,15 +16452,15 @@ components:
             - $ref: "#/components/schemas/TruncationObject"
             - nullable: true
         tool_choice:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
+          nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
       required:
         - assistant_id
     CreateThreadRequest:
@@ -19301,9 +19301,9 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
     ModifyMessageRequest:
       type: object
       additionalProperties: false
@@ -23688,15 +23688,15 @@ components:
             - $ref: "#/components/schemas/TruncationObject"
             - nullable: true
         tool_choice:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
+          nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
       required:
         - id
         - object
