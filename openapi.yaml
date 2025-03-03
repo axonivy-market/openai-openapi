@@ -15379,12 +15379,12 @@ components:
           type: string
           format: binary
         model:
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - dall-e-2
-              x-stainless-const: true
+          # anyOf:
+          # - type: string
+          type: string
+          enum:
+            - dall-e-2
+          x-stainless-const: true
           x-oaiTypeLabel: string
           default: dall-e-2
           example: dall-e-2
@@ -15440,12 +15440,12 @@ components:
           type: string
           example: A cute baby sea otter
         model:
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - dall-e-2
-                - dall-e-3
+          # anyOf:
+          #   - type: string
+          type: string
+          enum:
+            - dall-e-2
+            - dall-e-3
           x-oaiTypeLabel: string
           default: dall-e-2
           example: dall-e-3
@@ -15526,12 +15526,12 @@ components:
           type: string
           format: binary
         model:
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - dall-e-2
-              x-stainless-const: true
+          # anyOf:
+          #   - type: string
+          type: string
+          enum:
+            - dall-e-2
+          x-stainless-const: true
           x-oaiTypeLabel: string
           default: dall-e-2
           example: dall-e-2
@@ -15717,14 +15717,14 @@ components:
           nullable: false
           default: omni-moderation-latest
           example: omni-moderation-2024-09-26
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - omni-moderation-latest
-                - omni-moderation-2024-09-26
-                - text-moderation-latest
-                - text-moderation-stable
+          # anyOf:
+          # - type: string
+          type: string
+          enum:
+            - omni-moderation-latest
+            - omni-moderation-2024-09-26
+            - text-moderation-latest
+            - text-moderation-stable
           x-oaiTypeLabel: string
       required:
         - input
