@@ -13108,18 +13108,18 @@ components:
         content:
           description: |
             The contents of the user message.
-          oneOf:
-            - type: string
-              description: The text contents of the message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type. Supported options
-                differ based on the [model](/docs/models) being used to generate
-                the response. Can contain text, image, or audio inputs.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/ChatCompletionRequestUserMessageContentPart"
-              minItems: 1
+          # oneOf:
+          type: string
+          # description: The text contents of the message.
+          title: Text content
+            # - type: array
+            #   description: An array of content parts with a defined type. Supported options
+            #     differ based on the [model](/docs/models) being used to generate
+            #     the response. Can contain text, image, or audio inputs.
+            #   title: Array of content parts
+            #   items:
+            #     $ref: "#/components/schemas/ChatCompletionRequestUserMessageContentPart"
+            #   minItems: 1
           x-oaiExpandable: true
         role:
           type: string
@@ -13873,49 +13873,49 @@ components:
             compatibility](/docs/models#model-endpoint-compatibility) table for
             details on which models work with the Chat API.
           example: gpt-4o
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - o3-mini
-                - o3-mini-2025-01-31
-                - o1
-                - o1-2024-12-17
-                - o1-preview
-                - o1-preview-2024-09-12
-                - o1-mini
-                - o1-mini-2024-09-12
-                - gpt-4o
-                - gpt-4o-2024-11-20
-                - gpt-4o-2024-08-06
-                - gpt-4o-2024-05-13
-                - gpt-4o-audio-preview
-                - gpt-4o-audio-preview-2024-10-01
-                - gpt-4o-audio-preview-2024-12-17
-                - gpt-4o-mini-audio-preview
-                - gpt-4o-mini-audio-preview-2024-12-17
-                - chatgpt-4o-latest
-                - gpt-4o-mini
-                - gpt-4o-mini-2024-07-18
-                - gpt-4-turbo
-                - gpt-4-turbo-2024-04-09
-                - gpt-4-0125-preview
-                - gpt-4-turbo-preview
-                - gpt-4-1106-preview
-                - gpt-4-vision-preview
-                - gpt-4
-                - gpt-4-0314
-                - gpt-4-0613
-                - gpt-4-32k
-                - gpt-4-32k-0314
-                - gpt-4-32k-0613
-                - gpt-3.5-turbo
-                - gpt-3.5-turbo-16k
-                - gpt-3.5-turbo-0301
-                - gpt-3.5-turbo-0613
-                - gpt-3.5-turbo-1106
-                - gpt-3.5-turbo-0125
-                - gpt-3.5-turbo-16k-0613
+          # anyOf:
+          # - type: string
+          type: string
+          enum:
+            - o3-mini
+            - o3-mini-2025-01-31
+            - o1
+            - o1-2024-12-17
+            - o1-preview
+            - o1-preview-2024-09-12
+            - o1-mini
+            - o1-mini-2024-09-12
+            - gpt-4o
+            - gpt-4o-2024-11-20
+            - gpt-4o-2024-08-06
+            - gpt-4o-2024-05-13
+            - gpt-4o-audio-preview
+            - gpt-4o-audio-preview-2024-10-01
+            - gpt-4o-audio-preview-2024-12-17
+            - gpt-4o-mini-audio-preview
+            - gpt-4o-mini-audio-preview-2024-12-17
+            - chatgpt-4o-latest
+            - gpt-4o-mini
+            - gpt-4o-mini-2024-07-18
+            - gpt-4-turbo
+            - gpt-4-turbo-2024-04-09
+            - gpt-4-0125-preview
+            - gpt-4-turbo-preview
+            - gpt-4-1106-preview
+            - gpt-4-vision-preview
+            - gpt-4
+            - gpt-4-0314
+            - gpt-4-0613
+            - gpt-4-32k
+            - gpt-4-32k-0314
+            - gpt-4-32k-0613
+            - gpt-3.5-turbo
+            - gpt-3.5-turbo-16k
+            - gpt-3.5-turbo-0301
+            - gpt-3.5-turbo-0613
+            - gpt-3.5-turbo-1106
+            - gpt-3.5-turbo-0125
+            - gpt-3.5-turbo-16k-0613
           x-oaiTypeLabel: string
         store:
           type: boolean
@@ -15601,23 +15601,23 @@ components:
             Use this value to insert messages from the assistant into the
             conversation.
         content:
-          oneOf:
-            - type: string
-              description: The text contents of the message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type, each can be of type
-                `text` or images can be passed with `image_url` or `image_file`.
-                Image types are only supported on [Vision-compatible
-                models](/docs/models).
-              title: Array of content parts
-              items:
-                oneOf:
-                  - $ref: "#/components/schemas/MessageContentImageFileObject"
-                  - $ref: "#/components/schemas/MessageContentImageUrlObject"
-                  - $ref: "#/components/schemas/MessageRequestContentTextObject"
-                x-oaiExpandable: true
-              minItems: 1
+          # oneOf:
+          type: string
+          description: The text contents of the message.
+          title: Text content
+            # - type: array
+            #   description: An array of content parts with a defined type, each can be of type
+            #     `text` or images can be passed with `image_url` or `image_file`.
+            #     Image types are only supported on [Vision-compatible
+            #     models](/docs/models).
+            #   title: Array of content parts
+            #   items:
+            #     oneOf:
+            #       - $ref: "#/components/schemas/MessageContentImageFileObject"
+            #       - $ref: "#/components/schemas/MessageContentImageUrlObject"
+            #       - $ref: "#/components/schemas/MessageRequestContentTextObject"
+            #     x-oaiExpandable: true
+            #   minItems: 1
           x-oaiExpandable: true
         attachments:
           type: array
