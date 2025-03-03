@@ -11905,9 +11905,9 @@ components:
           enum:
             - auto
           x-stainless-const: true
-        - $ref: "#/components/schemas/ResponseFormatText"
-        - $ref: "#/components/schemas/ResponseFormatJsonObject"
-        - $ref: "#/components/schemas/ResponseFormatJsonSchema"
+        # - $ref: "#/components/schemas/ResponseFormatText"
+        # - $ref: "#/components/schemas/ResponseFormatJsonObject"
+        # - $ref: "#/components/schemas/ResponseFormatJsonSchema"
       x-oaiExpandable: true
     AssistantsApiToolChoiceOption:
       description: >
@@ -14630,28 +14630,28 @@ components:
             generate as if from the beginning of a new document.
           default: <|endoftext|>
           nullable: true
-          oneOf:
-            - type: string
-              default: ""
-              example: This is a test.
-            - type: array
-              items:
-                type: string
-                default: ""
-                example: This is a test.
-            - type: array
-              minItems: 1
-              items:
-                type: integer
-              example: "[1212, 318, 257, 1332, 13]"
-            - type: array
-              minItems: 1
-              items:
-                type: array
-                minItems: 1
-                items:
-                  type: integer
-              example: "[[1212, 318, 257, 1332, 13]]"
+          # oneOf:
+          type: string
+          # default: ""
+          example: This is a test.
+            # - type: array
+            #   items:
+            #     type: string
+            #     default: ""
+            #     example: This is a test.
+            # - type: array
+            #   minItems: 1
+            #   items:
+            #     type: integer
+            #   example: "[1212, 318, 257, 1332, 13]"
+            # - type: array
+            #   minItems: 1
+            #   items:
+            #     type: array
+            #     minItems: 1
+            #     items:
+            #       type: integer
+            #   example: "[[1212, 318, 257, 1332, 13]]"
         best_of:
           type: integer
           default: 1
@@ -15195,14 +15195,14 @@ components:
                 model parameters
 
                 are updated less frequently, but with lower variance.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 256
+              #oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
@@ -15210,14 +15210,14 @@ components:
                 may be useful to avoid
 
                 overfitting.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: number
-                  minimum: 0
-                  exclusiveMinimum: true
+              #oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+              #   - type: number
+              #     minimum: 0
+              #     exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
@@ -15225,14 +15225,14 @@ components:
                 one full cycle
 
                 through the training dataset.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 50
+              #oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 50
               default: auto
           deprecated: true
         suffix:
@@ -17265,55 +17265,55 @@ components:
                 The beta value for the DPO method. A higher beta value will
                 increase the weight of the penalty between the policy and
                 reference model.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: number
-                  minimum: 0
-                  maximum: 2
-                  exclusiveMinimum: true
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              # x-stainless-const: true
+              #   - type: number
+              #     minimum: 0
+              #     maximum: 2
+              #     exclusiveMinimum: true
               default: auto
             batch_size:
               description: >
                 Number of examples in each batch. A larger batch size means that
                 model parameters are updated less frequently, but with lower
                 variance.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 256
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
                 Scaling factor for the learning rate. A smaller learning rate
                 may be useful to avoid overfitting.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: number
-                  minimum: 0
-                  exclusiveMinimum: true
+              #oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: number
+                #   minimum: 0
+                #   exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
                 The number of epochs to train the model for. An epoch refers to
                 one full cycle through the training dataset.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 50
+              #oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 50
               default: auto
     FineTuneMethod:
       type: object
@@ -17406,40 +17406,40 @@ components:
                 Number of examples in each batch. A larger batch size means that
                 model parameters are updated less frequently, but with lower
                 variance.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 256
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
                 Scaling factor for the learning rate. A smaller learning rate
                 may be useful to avoid overfitting.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: number
-                  minimum: 0
-                  exclusiveMinimum: true
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: number
+                #   minimum: 0
+                #   exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
                 The number of epochs to train the model for. An epoch refers to
                 one full cycle through the training dataset.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 50
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 50
               default: auto
     FineTuningIntegration:
       type: object
@@ -17557,14 +17557,14 @@ components:
                 model parameters
 
                 are updated less frequently, but with lower variance.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 256
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
@@ -17572,14 +17572,14 @@ components:
                 may be useful to avoid
 
                 overfitting.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: number
-                  minimum: 0
-                  exclusiveMinimum: true
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: number
+                #   minimum: 0
+                #   exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
@@ -17587,14 +17587,14 @@ components:
                 one full cycle
 
                 through the training dataset.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 50
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 50
               default: auto
         model:
           type: string
