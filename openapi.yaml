@@ -11681,9 +11681,9 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
       required:
         - id
         - object
@@ -11898,16 +11898,16 @@ components:
         partially cut off if `finish_reason="length"`, which indicates the
         generation exceeded `max_tokens` or the conversation exceeded the max
         context length.
-      oneOf:
-        - type: string
-          description: |
-            `auto` is the default value
-          enum:
-            - auto
-          x-stainless-const: true
-        - $ref: "#/components/schemas/ResponseFormatText"
-        - $ref: "#/components/schemas/ResponseFormatJsonObject"
-        - $ref: "#/components/schemas/ResponseFormatJsonSchema"
+      # oneOf:
+      type: string
+      # description: |
+      #   `auto` is the default value
+      enum:
+        - auto
+      x-stainless-const: true
+        # - $ref: "#/components/schemas/ResponseFormatText"
+        # - $ref: "#/components/schemas/ResponseFormatJsonObject"
+        # - $ref: "#/components/schemas/ResponseFormatJsonSchema"
       x-oaiExpandable: true
     AssistantsApiToolChoiceOption:
       description: >
@@ -11925,18 +11925,18 @@ components:
         Specifying a particular tool like `{"type": "file_search"}` or `{"type":
         "function", "function": {"name": "my_function"}}` forces the model to
         call that tool.
-      oneOf:
-        - type: string
-          description: >
-            `none` means the model will not call any tools and instead generates
-            a message. `auto` means the model can pick between generating a
-            message or calling one or more tools. `required` means the model
-            must call one or more tools before responding to the user.
-          enum:
-            - none
-            - auto
-            - required
-        - $ref: "#/components/schemas/AssistantsNamedToolChoice"
+      # oneOf:
+      type: string
+      # description: >
+      #   `none` means the model will not call any tools and instead generates
+      #   a message. `auto` means the model can pick between generating a
+      #   message or calling one or more tools. `required` means the model
+      #   must call one or more tools before responding to the user.
+      enum:
+        - none
+        - auto
+        - required
+        # - $ref: "#/components/schemas/AssistantsNamedToolChoice"
       x-oaiExpandable: true
     AssistantsNamedToolChoice:
       type: object
@@ -13105,18 +13105,18 @@ components:
         content:
           description: |
             The contents of the user message.
-          oneOf:
-            - type: string
-              description: The text contents of the message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type. Supported options
-                differ based on the [model](/docs/models) being used to generate
-                the response. Can contain text, image, or audio inputs.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/ChatCompletionRequestUserMessageContentPart"
-              minItems: 1
+          # oneOf:
+          type: string
+          # description: The text contents of the message.
+          title: Text content
+            # - type: array
+            #   description: An array of content parts with a defined type. Supported options
+            #     differ based on the [model](/docs/models) being used to generate
+            #     the response. Can contain text, image, or audio inputs.
+            #   title: Array of content parts
+            #   items:
+            #     $ref: "#/components/schemas/ChatCompletionRequestUserMessageContentPart"
+            #   minItems: 1
           x-oaiExpandable: true
         role:
           type: string
@@ -13698,9 +13698,9 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
       required:
         - model
     CreateChatCompletionFunctionResponse:
@@ -13870,49 +13870,49 @@ components:
             compatibility](/docs/models#model-endpoint-compatibility) table for
             details on which models work with the Chat API.
           example: gpt-4o
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - o3-mini
-                - o3-mini-2025-01-31
-                - o1
-                - o1-2024-12-17
-                - o1-preview
-                - o1-preview-2024-09-12
-                - o1-mini
-                - o1-mini-2024-09-12
-                - gpt-4o
-                - gpt-4o-2024-11-20
-                - gpt-4o-2024-08-06
-                - gpt-4o-2024-05-13
-                - gpt-4o-audio-preview
-                - gpt-4o-audio-preview-2024-10-01
-                - gpt-4o-audio-preview-2024-12-17
-                - gpt-4o-mini-audio-preview
-                - gpt-4o-mini-audio-preview-2024-12-17
-                - chatgpt-4o-latest
-                - gpt-4o-mini
-                - gpt-4o-mini-2024-07-18
-                - gpt-4-turbo
-                - gpt-4-turbo-2024-04-09
-                - gpt-4-0125-preview
-                - gpt-4-turbo-preview
-                - gpt-4-1106-preview
-                - gpt-4-vision-preview
-                - gpt-4
-                - gpt-4-0314
-                - gpt-4-0613
-                - gpt-4-32k
-                - gpt-4-32k-0314
-                - gpt-4-32k-0613
-                - gpt-3.5-turbo
-                - gpt-3.5-turbo-16k
-                - gpt-3.5-turbo-0301
-                - gpt-3.5-turbo-0613
-                - gpt-3.5-turbo-1106
-                - gpt-3.5-turbo-0125
-                - gpt-3.5-turbo-16k-0613
+          # anyOf:
+          # - type: string
+          type: string
+          enum:
+            - o3-mini
+            - o3-mini-2025-01-31
+            - o1
+            - o1-2024-12-17
+            - o1-preview
+            - o1-preview-2024-09-12
+            - o1-mini
+            - o1-mini-2024-09-12
+            - gpt-4o
+            - gpt-4o-2024-11-20
+            - gpt-4o-2024-08-06
+            - gpt-4o-2024-05-13
+            - gpt-4o-audio-preview
+            - gpt-4o-audio-preview-2024-10-01
+            - gpt-4o-audio-preview-2024-12-17
+            - gpt-4o-mini-audio-preview
+            - gpt-4o-mini-audio-preview-2024-12-17
+            - chatgpt-4o-latest
+            - gpt-4o-mini
+            - gpt-4o-mini-2024-07-18
+            - gpt-4-turbo
+            - gpt-4-turbo-2024-04-09
+            - gpt-4-0125-preview
+            - gpt-4-turbo-preview
+            - gpt-4-1106-preview
+            - gpt-4-vision-preview
+            - gpt-4
+            - gpt-4-0314
+            - gpt-4-0613
+            - gpt-4-32k
+            - gpt-4-32k-0314
+            - gpt-4-32k-0613
+            - gpt-3.5-turbo
+            - gpt-3.5-turbo-16k
+            - gpt-3.5-turbo-0301
+            - gpt-3.5-turbo-0613
+            - gpt-3.5-turbo-1106
+            - gpt-3.5-turbo-0125
+            - gpt-3.5-turbo-16k-0613
           x-oaiTypeLabel: string
         store:
           type: boolean
@@ -14630,28 +14630,28 @@ components:
             generate as if from the beginning of a new document.
           default: <|endoftext|>
           nullable: true
-          oneOf:
-            - type: string
-              default: ""
-              example: This is a test.
-            - type: array
-              items:
-                type: string
-                default: ""
-                example: This is a test.
-            - type: array
-              minItems: 1
-              items:
-                type: integer
-              example: "[1212, 318, 257, 1332, 13]"
-            - type: array
-              minItems: 1
-              items:
-                type: array
-                minItems: 1
-                items:
-                  type: integer
-              example: "[[1212, 318, 257, 1332, 13]]"
+          # oneOf:
+          type: string
+          # default: ""
+          example: This is a test.
+            # - type: array
+            #   items:
+            #     type: string
+            #     default: ""
+            #     example: This is a test.
+            # - type: array
+            #   minItems: 1
+            #   items:
+            #     type: integer
+            #   example: "[1212, 318, 257, 1332, 13]"
+            # - type: array
+            #   minItems: 1
+            #   items:
+            #     type: array
+            #     minItems: 1
+            #     items:
+            #       type: integer
+            #   example: "[[1212, 318, 257, 1332, 13]]"
         best_of:
           type: integer
           default: 1
@@ -15195,14 +15195,14 @@ components:
                 model parameters
 
                 are updated less frequently, but with lower variance.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 256
+              #oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
@@ -15210,14 +15210,14 @@ components:
                 may be useful to avoid
 
                 overfitting.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: number
-                  minimum: 0
-                  exclusiveMinimum: true
+              #oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+              #   - type: number
+              #     minimum: 0
+              #     exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
@@ -15225,14 +15225,14 @@ components:
                 one full cycle
 
                 through the training dataset.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 50
+              #oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 50
               default: auto
           deprecated: true
         suffix:
@@ -15376,12 +15376,12 @@ components:
           type: string
           format: binary
         model:
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - dall-e-2
-              x-stainless-const: true
+          # anyOf:
+          # - type: string
+          type: string
+          enum:
+            - dall-e-2
+          x-stainless-const: true
           x-oaiTypeLabel: string
           default: dall-e-2
           example: dall-e-2
@@ -15437,12 +15437,12 @@ components:
           type: string
           example: A cute baby sea otter
         model:
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - dall-e-2
-                - dall-e-3
+          # anyOf:
+          #   - type: string
+          type: string
+          enum:
+            - dall-e-2
+            - dall-e-3
           x-oaiTypeLabel: string
           default: dall-e-2
           example: dall-e-3
@@ -15523,12 +15523,12 @@ components:
           type: string
           format: binary
         model:
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - dall-e-2
-              x-stainless-const: true
+          # anyOf:
+          #   - type: string
+          type: string
+          enum:
+            - dall-e-2
+          x-stainless-const: true
           x-oaiTypeLabel: string
           default: dall-e-2
           example: dall-e-2
@@ -15598,23 +15598,23 @@ components:
             Use this value to insert messages from the assistant into the
             conversation.
         content:
-          oneOf:
-            - type: string
-              description: The text contents of the message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type, each can be of type
-                `text` or images can be passed with `image_url` or `image_file`.
-                Image types are only supported on [Vision-compatible
-                models](/docs/models).
-              title: Array of content parts
-              items:
-                oneOf:
-                  - $ref: "#/components/schemas/MessageContentImageFileObject"
-                  - $ref: "#/components/schemas/MessageContentImageUrlObject"
-                  - $ref: "#/components/schemas/MessageRequestContentTextObject"
-                x-oaiExpandable: true
-              minItems: 1
+          # oneOf:
+          type: string
+          description: The text contents of the message.
+          title: Text content
+            # - type: array
+            #   description: An array of content parts with a defined type, each can be of type
+            #     `text` or images can be passed with `image_url` or `image_file`.
+            #     Image types are only supported on [Vision-compatible
+            #     models](/docs/models).
+            #   title: Array of content parts
+            #   items:
+            #     oneOf:
+            #       - $ref: "#/components/schemas/MessageContentImageFileObject"
+            #       - $ref: "#/components/schemas/MessageContentImageUrlObject"
+            #       - $ref: "#/components/schemas/MessageRequestContentTextObject"
+            #     x-oaiExpandable: true
+            #   minItems: 1
           x-oaiExpandable: true
         attachments:
           type: array
@@ -15714,14 +15714,14 @@ components:
           nullable: false
           default: omni-moderation-latest
           example: omni-moderation-2024-09-26
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - omni-moderation-latest
-                - omni-moderation-2024-09-26
-                - text-moderation-latest
-                - text-moderation-stable
+          # anyOf:
+          # - type: string
+          type: string
+          enum:
+            - omni-moderation-latest
+            - omni-moderation-2024-09-26
+            - text-moderation-latest
+            - text-moderation-stable
           x-oaiTypeLabel: string
       required:
         - input
@@ -16221,15 +16221,15 @@ components:
             - $ref: "#/components/schemas/TruncationObject"
             - nullable: true
         tool_choice:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
+          nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
       required:
         - assistant_id
     CreateSpeechRequest:
@@ -16449,15 +16449,15 @@ components:
             - $ref: "#/components/schemas/TruncationObject"
             - nullable: true
         tool_choice:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
+          nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
       required:
         - assistant_id
     CreateThreadRequest:
@@ -17265,55 +17265,55 @@ components:
                 The beta value for the DPO method. A higher beta value will
                 increase the weight of the penalty between the policy and
                 reference model.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: number
-                  minimum: 0
-                  maximum: 2
-                  exclusiveMinimum: true
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              # x-stainless-const: true
+              #   - type: number
+              #     minimum: 0
+              #     maximum: 2
+              #     exclusiveMinimum: true
               default: auto
             batch_size:
               description: >
                 Number of examples in each batch. A larger batch size means that
                 model parameters are updated less frequently, but with lower
                 variance.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 256
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
                 Scaling factor for the learning rate. A smaller learning rate
                 may be useful to avoid overfitting.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: number
-                  minimum: 0
-                  exclusiveMinimum: true
+              #oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: number
+                #   minimum: 0
+                #   exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
                 The number of epochs to train the model for. An epoch refers to
                 one full cycle through the training dataset.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 50
+              #oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 50
               default: auto
     FineTuneMethod:
       type: object
@@ -17406,40 +17406,40 @@ components:
                 Number of examples in each batch. A larger batch size means that
                 model parameters are updated less frequently, but with lower
                 variance.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 256
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
                 Scaling factor for the learning rate. A smaller learning rate
                 may be useful to avoid overfitting.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: number
-                  minimum: 0
-                  exclusiveMinimum: true
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: number
+                #   minimum: 0
+                #   exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
                 The number of epochs to train the model for. An epoch refers to
                 one full cycle through the training dataset.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 50
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 50
               default: auto
     FineTuningIntegration:
       type: object
@@ -17557,14 +17557,14 @@ components:
                 model parameters
 
                 are updated less frequently, but with lower variance.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 256
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
@@ -17572,14 +17572,14 @@ components:
                 may be useful to avoid
 
                 overfitting.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: number
-                  minimum: 0
-                  exclusiveMinimum: true
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: number
+                #   minimum: 0
+                #   exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
@@ -17587,14 +17587,14 @@ components:
                 one full cycle
 
                 through the training dataset.
-              oneOf:
-                - type: string
-                  enum:
-                    - auto
-                  x-stainless-const: true
-                - type: integer
-                  minimum: 1
-                  maximum: 50
+              # oneOf:
+              type: string
+              enum:
+                - auto
+              x-stainless-const: true
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 50
               default: auto
         model:
           type: string
@@ -19298,9 +19298,9 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
     ModifyMessageRequest:
       type: object
       additionalProperties: false
@@ -23685,15 +23685,15 @@ components:
             - $ref: "#/components/schemas/TruncationObject"
             - nullable: true
         tool_choice:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
+          nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
-          allOf:
-            - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          nullable: true
       required:
         - id
         - object
