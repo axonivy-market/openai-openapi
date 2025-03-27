@@ -9921,107 +9921,7 @@ paths:
               "object": "response",
               "deleted": true
             }
-  /responses/{response_id}/input_items:
-    get:
-      operationId: listInputItems
-      tags:
-        - Responses
-      summary: Returns a list of input items for a given response.
-      parameters:
-        - in: path
-          name: response_id
-          required: true
-          schema:
-            type: string
-          description: The ID of the response to retrieve input items for.
-        - name: limit
-          in: query
-          description: >
-            A limit on the number of objects to be returned. Limit can range
-            between
-
-            1 and 100, and the default is 20.
-          required: false
-          schema:
-            type: integer
-            default: 20
-        - in: query
-          name: order
-          schema:
-            type: string
-            enum:
-              - asc
-              - desc
-          description: |
-            The order to return the input items in. Default is `asc`.
-            - `asc`: Return the input items in ascending order.
-            - `desc`: Return the input items in descending order.
-        - in: query
-          name: after
-          schema:
-            type: string
-          description: |
-            An item ID to list items after, used in pagination.
-        - in: query
-          name: before
-          schema:
-            type: string
-          description: |
-            An item ID to list items before, used in pagination.
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponseItemList"
-      x-oaiMeta:
-        name: List input items
-        group: responses
-        returns: A list of input item objects.
-        examples:
-          request:
-            curl: |
-              curl https://api.openai.com/v1/responses/resp_abc123/input_items \
-                -H "Content-Type: application/json" \
-                -H "Authorization: Bearer $OPENAI_API_KEY"
-            javascript: >
-              import OpenAI from "openai";
-
-              const client = new OpenAI();
-
-
-              const response = await
-              client.responses.inputItems.list("resp_123");
-
-              console.log(response.data);
-            python: |
-              from openai import OpenAI
-              client = OpenAI()
-
-              response = client.responses.input_items.list("resp_123")
-              print(response.data)
-          response: >
-            {
-              "object": "list",
-              "data": [
-                {
-                  "id": "msg_abc123",
-                  "type": "message",
-                  "role": "user",
-                  "content": [
-                    {
-                      "type": "input_text",
-                      "text": "Tell me a three sentence bedtime story about a unicorn."
-                    }
-                  ]
-                }
-              ],
-              "first_id": "msg_abc123",
-              "last_id": "msg_abc123",
-              "has_more": false
-            }
-  /threads:
+    /threads:
     post:
       operationId: createThread
       tags:
@@ -19904,98 +19804,6 @@ components:
               }
             ]
           }
-    CreateResponse:
-      allOf:
-        - $ref: "#/components/schemas/CreateModelResponseProperties"
-        - $ref: "#/components/schemas/ResponseProperties"
-        - type: object
-          properties:
-            input:
-              description: >
-                Text, image, or file inputs to the model, used to generate a
-                response.
-
-
-                Learn more:
-
-                - [Text inputs and outputs](/docs/guides/text)
-
-                - [Image inputs](/docs/guides/images)
-
-                - [File inputs](/docs/guides/pdf-files)
-
-                - [Conversation state](/docs/guides/conversation-state)
-
-                - [Function calling](/docs/guides/function-calling)
-              x-oaiExpandable: true
-              oneOf:
-                - type: string
-                  title: Text input
-                  description: >
-                    A text input to the model, equivalent to a text input with
-                    the 
-
-                    `user` role.
-                - type: array
-                  title: Input item list
-                  description: |
-                    A list of one or many input items to the model, containing 
-                    different content types.
-                  items:
-                    x-oaiExpandable: true
-                    $ref: "#/components/schemas/InputItem"
-            include:
-              type: array
-              description: >
-                Specify additional output data to include in the model response.
-                Currently
-
-                supported values are:
-
-                - `file_search_call.results`: Include the search results of
-                  the file search tool call.
-                - `message.input_image.image_url`: Include image urls from the
-                input message.
-
-                - `computer_call_output.output.image_url`: Include image urls
-                from the computer call output.
-              items:
-                x-oaiExpandable: true
-                $ref: "#/components/schemas/Includable"
-              nullable: true
-            parallel_tool_calls:
-              type: boolean
-              description: |
-                Whether to allow the model to run tool calls in parallel.
-              default: true
-              nullable: true
-            store:
-              type: boolean
-              description: >
-                Whether to store the generated model response for later
-                retrieval via
-
-                API.
-              default: true
-              nullable: true
-            stream:
-              description: >
-                If set to true, the model response data will be streamed to the
-                client
-
-                as it is generated using [server-sent
-                events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
-
-                See the [Streaming section
-                below](/docs/api-reference/responses-streaming)
-
-                for more information.
-              type: boolean
-              nullable: true
-              default: false
-          required:
-            - model
-            - input
     CreateRunRequest:
       type: object
       additionalProperties: false
@@ -22564,19 +22372,6 @@ components:
       required:
         - type
         - detail
-    InputItem:
-      oneOf:
-        - $ref: "#/components/schemas/EasyInputMessage"
-        - type: object
-          title: Item
-          description: |
-            An item representing part of the context for the response to be 
-            generated by the model. Can contain text, images, and audio inputs,
-            as well as previous assistant responses and tool call outputs.
-          $ref: "#/components/schemas/Item"
-        - $ref: "#/components/schemas/ItemReference"
-      discriminator:
-        propertyName: type
     InputMessage:
       type: object
       title: Input message
@@ -34967,8 +34762,6 @@ x-oaiMeta:
           key: deleteResponse
           path: delete
         - type: endpoint
-          key: listInputItems
-          path: input-items
         - type: object
           key: Response
           path: object
