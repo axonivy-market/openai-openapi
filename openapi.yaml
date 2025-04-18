@@ -11615,11 +11615,7 @@ components:
           type: array
           maxItems: 128
           items:
-            oneOf:
-              - $ref: "#/components/schemas/AssistantToolsCode"
-              - $ref: "#/components/schemas/AssistantToolsFileSearch"
-              - $ref: "#/components/schemas/AssistantToolsFunction"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/AssistantTool"
         tool_resources:
           type: object
           description: >
@@ -11684,7 +11680,6 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-          # allOf:
           $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
           nullable: true
       required:
@@ -11719,6 +11714,29 @@ components:
             "temperature": 1.0,
             "response_format": "auto"
           }
+    AssistantTool:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - code_interpreter
+            - file_search
+            - function
+          x-stainless-const: true
+      oneOf:
+        - $ref: "#/components/schemas/AssistantToolsCode"
+        - $ref: "#/components/schemas/AssistantToolsFileSearch"
+        - $ref: "#/components/schemas/AssistantToolsFunction"
+      required:
+        - type
+      discriminator:
+        propertyName: type
+        mapping:
+          code_interpreter: "#/components/schemas/AssistantToolsCode"
+          file_search: "#/components/schemas/AssistantToolsFileSearch"
+          function: "#/components/schemas/AssistantToolsFunction"
+      x-oaiExpandable: true
     AssistantStreamEvent:
       description: >
         Represents an event emitted when streaming a Run.
@@ -11804,50 +11822,35 @@ components:
         - gpt-3.5-turbo-0125
         - gpt-3.5-turbo-16k-0613
     AssistantToolsCode:
-      type: object
-      title: Code interpreter tool
-      properties:
-        type:
-          type: string
-          description: "The type of tool being defined: `code_interpreter`"
-          enum:
-            - code_interpreter
-          x-stainless-const: true
-      required:
-        - type
+      allOf:
+        - $ref: "#/components/schemas/AssistantTool"
     AssistantToolsFileSearch:
-      type: object
-      title: FileSearch tool
-      properties:
-        type:
-          type: string
-          description: "The type of tool being defined: `file_search`"
-          enum:
-            - file_search
-          x-stainless-const: true
-        file_search:
-          type: object
-          description: Overrides for the file search tool.
+      allOf:
+        - $ref: "#/components/schemas/AssistantTool"
+        - type: object
+          title: FileSearch tool
           properties:
-            max_num_results:
-              type: integer
-              minimum: 1
-              maximum: 50
-              description: >
-                The maximum number of results the file search tool should
-                output. The default is 20 for `gpt-4*` models and 5 for
-                `gpt-3.5-turbo`. This number should be between 1 and 50
-                inclusive.
-
-
-                Note that the file search tool may output fewer than
-                `max_num_results` results. See the [file search tool
-                documentation](/docs/assistants/tools/file-search#customizing-file-search-settings)
-                for more information.
-            ranking_options:
-              $ref: "#/components/schemas/FileSearchRankingOptions"
-      required:
-        - type
+            file_search:
+              type: object
+              description: Overrides for the file search tool.
+              properties:
+                max_num_results:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+                  description: >
+                    The maximum number of results the file search tool should
+                    output. The default is 20 for `gpt-4*` models and 5 for
+                    `gpt-3.5-turbo`. This number should be between 1 and 50
+                    inclusive.
+    
+    
+                    Note that the file search tool may output fewer than
+                    `max_num_results` results. See the [file search tool
+                    documentation](/docs/assistants/tools/file-search#customizing-file-search-settings)
+                    for more information.
+                ranking_options:
+                  $ref: "#/components/schemas/FileSearchRankingOptions"
     AssistantToolsFileSearchTypeOnly:
       type: object
       title: FileSearch tool
@@ -11861,20 +11864,15 @@ components:
       required:
         - type
     AssistantToolsFunction:
-      type: object
-      title: Function tool
-      properties:
-        type:
-          type: string
-          description: "The type of tool being defined: `function`"
-          enum:
+      allOf:
+        - $ref: "#/components/schemas/AssistantTool"
+        - type: object
+          title: Function tool
+          properties:
+            function:
+              $ref: "#/components/schemas/FunctionObject"
+          required:
             - function
-          x-stainless-const: true
-        function:
-          $ref: "#/components/schemas/FunctionObject"
-      required:
-        - type
-        - function
     AssistantsApiResponseFormatOption:
       description: >
         Specifies the format that the model must output. Compatible with
@@ -11901,46 +11899,63 @@ components:
         partially cut off if `finish_reason="length"`, which indicates the
         generation exceeded `max_tokens` or the conversation exceeded the max
         context length.
-      # oneOf:
-      type: string
-      # description: |
-      #   `auto` is the default value
-      enum:
-        - auto
-      x-stainless-const: true
-        # - $ref: "#/components/schemas/ResponseFormatText"
-        # - $ref: "#/components/schemas/ResponseFormatJsonObject"
-        # - $ref: "#/components/schemas/ResponseFormatJsonSchema"
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - text
+            - json_object
+            - json_schema
+          x-stainless-const: true
+      required:
+        - type
+      oneOf:
+#        - type: string
+#          description: |
+#            `auto` is the default value
+#          enum:
+#            - auto
+#          x-stainless-const: true
+        - $ref: "#/components/schemas/ResponseFormatText"
+        - $ref: "#/components/schemas/ResponseFormatJsonObject"
+        - $ref: "#/components/schemas/ResponseFormatJsonSchema"
+      discriminator:
+        propertyName: type
+        mapping:
+          text: "#/components/schemas/ResponseFormatText"
+          json_object: "#/components/schemas/ResponseFormatJsonObject"
+          json_schema: "#/components/schemas/ResponseFormatJsonSchema"
       x-oaiExpandable: true
-    AssistantsApiToolChoiceOption:
-      description: >
-        Controls which (if any) tool is called by the model.
-
-        `none` means the model will not call any tools and instead generates a
-        message.
-
-        `auto` is the default value and means the model can pick between
-        generating a message or calling one or more tools.
-
-        `required` means the model must call one or more tools before responding
-        to the user.
-
-        Specifying a particular tool like `{"type": "file_search"}` or `{"type":
-        "function", "function": {"name": "my_function"}}` forces the model to
-        call that tool.
-      # oneOf:
-      type: string
-      # description: >
-      #   `none` means the model will not call any tools and instead generates
-      #   a message. `auto` means the model can pick between generating a
-      #   message or calling one or more tools. `required` means the model
-      #   must call one or more tools before responding to the user.
-      enum:
-        - none
-        - auto
-        - required
-        # - $ref: "#/components/schemas/AssistantsNamedToolChoice"
-      x-oaiExpandable: true
+#    AssistantsApiToolChoiceOption:
+#      description: >
+#        Controls which (if any) tool is called by the model.
+#
+#        `none` means the model will not call any tools and instead generates a
+#        message.
+#
+#        `auto` is the default value and means the model can pick between
+#        generating a message or calling one or more tools.
+#
+#        `required` means the model must call one or more tools before responding
+#        to the user.
+#
+#        Specifying a particular tool like `{"type": "file_search"}` or `{"type":
+#        "function", "function": {"name": "my_function"}}` forces the model to
+#        call that tool.
+#      oneOf:
+#        - type: string
+#          description: >
+#            `none` means the model will not call any tools and instead generates
+#            a message. `auto` means the model can pick between generating a
+#            message or calling one or more tools. `required` means the model
+#            must call one or more tools before responding to the user.
+#          enum:
+#            - none
+#            - auto
+#            - required
+#        - $ref: "#/components/schemas/AssistantsNamedToolChoice"
+#      x-oaiExpandable: true
     AssistantsNamedToolChoice:
       type: object
       description: Specifies a tool the model should use. Use to force the model to
@@ -13119,7 +13134,7 @@ components:
             #   title: Array of content parts
             #   items:
             #     $ref: "#/components/schemas/ChatCompletionRequestUserMessageContentPart"
-            #   minItems: 1
+          #   minItems: 1
           x-oaiExpandable: true
         role:
           type: string
@@ -13701,7 +13716,6 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-          # allOf:
           $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
           nullable: true
       required:
@@ -14654,7 +14668,7 @@ components:
             #     minItems: 1
             #     items:
             #       type: integer
-            #   example: "[[1212, 318, 257, 1332, 13]]"
+          #   example: "[[1212, 318, 257, 1332, 13]]"
         best_of:
           type: integer
           default: 1
@@ -15205,7 +15219,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-                #   maximum: 256
+              #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
@@ -15235,7 +15249,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-                #   maximum: 50
+              #   maximum: 50
               default: auto
           deprecated: true
         suffix:
@@ -15617,7 +15631,7 @@ components:
             #       - $ref: "#/components/schemas/MessageContentImageUrlObject"
             #       - $ref: "#/components/schemas/MessageRequestContentTextObject"
             #     x-oaiExpandable: true
-            #   minItems: 1
+          #   minItems: 1
           x-oaiExpandable: true
         attachments:
           type: array
@@ -16220,19 +16234,19 @@ components:
             for more info.
           minimum: 256
         truncation_strategy:
-          allOf:
-            - $ref: "#/components/schemas/TruncationObject"
-            - nullable: true
+#          allOf:
+          $ref: "#/components/schemas/TruncationObject"
+#            - nullable: true
         tool_choice:
-          # allOf:
-          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-          nullable: true
+#          allOf:
+          $ref: "#/components/schemas/AssistantsNamedToolChoice"
+#          nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
-          # allOf:
+#          allOf:
           $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-          nullable: true
+#          nullable: true
       required:
         - assistant_id
     CreateSpeechRequest:
@@ -16448,19 +16462,19 @@ components:
             for more info.
           minimum: 256
         truncation_strategy:
-          allOf:
-            - $ref: "#/components/schemas/TruncationObject"
-            - nullable: true
+#          allOf:
+           $ref: "#/components/schemas/TruncationObject"
+#           nullable: true
         tool_choice:
-          # allOf:
-          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-          nullable: true
+#          allOf:
+          $ref: "#/components/schemas/AssistantsNamedToolChoice"
+#          nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
-          # allOf:
+#          allOf:
           $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-          nullable: true
+#          nullable: true
       required:
         - assistant_id
     CreateThreadRequest:
@@ -17290,7 +17304,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-                #   maximum: 256
+              #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
@@ -17303,7 +17317,7 @@ components:
               x-stainless-const: true
                 # - type: number
                 #   minimum: 0
-                #   exclusiveMinimum: true
+              #   exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
@@ -17316,7 +17330,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-                #   maximum: 50
+              #   maximum: 50
               default: auto
     FineTuneMethod:
       type: object
@@ -17416,7 +17430,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-                #   maximum: 256
+              #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
@@ -17429,7 +17443,7 @@ components:
               x-stainless-const: true
                 # - type: number
                 #   minimum: 0
-                #   exclusiveMinimum: true
+              #   exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
@@ -17442,7 +17456,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-                #   maximum: 50
+              #   maximum: 50
               default: auto
     FineTuningIntegration:
       type: object
@@ -17560,29 +17574,28 @@ components:
                 model parameters
 
                 are updated less frequently, but with lower variance.
-              # oneOf:
+#              oneOf:
               type: string
-              enum:
-                - auto
+#                  enum:
+#                    - auto
               x-stainless-const: true
-                # - type: integer
-                #   minimum: 1
-                #   maximum: 256
+#                - type: integer
+#                  minimum: 1
+#                  maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
                 Scaling factor for the learning rate. A smaller learning rate
                 may be useful to avoid
-
                 overfitting.
-              # oneOf:
+#              oneOf:
               type: string
-              enum:
-                - auto
+#                  enum:
+#                    - auto
               x-stainless-const: true
-                # - type: number
-                #   minimum: 0
-                #   exclusiveMinimum: true
+#                - type: number
+#                  minimum: 0
+#                  exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
@@ -17590,14 +17603,14 @@ components:
                 one full cycle
 
                 through the training dataset.
-              # oneOf:
+#              oneOf:
               type: string
-              enum:
-                - auto
+#              enum:
+#                - auto
               x-stainless-const: true
-                # - type: integer
-                #   minimum: 1
-                #   maximum: 50
+#                 - type: integer
+#                   minimum: 1
+#                   maximum: 50
               default: auto
         model:
           type: string
@@ -17652,9 +17665,9 @@ components:
           description: A list of integrations to enable for this fine-tuning job.
           maxItems: 5
           items:
-            oneOf:
-              - $ref: "#/components/schemas/FineTuningIntegration"
-            x-oaiExpandable: true
+#            allOf:
+            $ref: "#/components/schemas/FineTuningIntegration"
+#            x-oaiExpandable: true
         seed:
           type: integer
           description: The seed used for the fine-tuning job.
@@ -18460,191 +18473,178 @@ components:
         - has_more
     MessageContentImageFileObject:
       title: Image file
-      type: object
       description: References an image [File](/docs/api-reference/files) in the
         content of a message.
-      properties:
-        type:
-          description: Always `image_file`.
-          type: string
-          enum:
-            - image_file
-          x-stainless-const: true
-        image_file:
-          type: object
+      allOf:
+        - $ref: "#/components/schemas/MessageContentObject"
+        - type: object
           properties:
-            file_id:
-              description: The [File](/docs/api-reference/files) ID of the image in the
-                message content. Set `purpose="vision"` when uploading the File
-                if you need to later display the file content.
-              type: string
-            detail:
-              type: string
-              description: Specifies the detail level of the image if specified by the user.
-                `low` uses fewer tokens, you can opt in to high resolution using
-                `high`.
-              enum:
-                - auto
-                - low
-                - high
-              default: auto
+            image_file:
+              type: object
+              properties:
+                file_id:
+                  description: The [File](/docs/api-reference/files) ID of the image in the
+                    message content. Set `purpose="vision"` when uploading the File
+                    if you need to later display the file content.
+                  type: string
+                detail:
+                  type: string
+                  description: Specifies the detail level of the image if specified by the user.
+                    `low` uses fewer tokens, you can opt in to high resolution using
+                    `high`.
+                  enum:
+                    - auto
+                    - low
+                    - high
+                  default: auto
+              required:
+                - file_id
           required:
-            - file_id
-      required:
-        - type
-        - image_file
+            - image_file
     MessageContentImageUrlObject:
       title: Image URL
-      type: object
       description: References an image URL in the content of a message.
-      properties:
-        type:
-          type: string
-          enum:
-            - image_url
-          description: The type of the content part.
-          x-stainless-const: true
-        image_url:
-          type: object
+      allOf:
+        - $ref: "#/components/schemas/MessageContentObject"
+        - type: object
           properties:
-            url:
-              type: string
-              description: "The external URL of the image, must be a supported image types:
-                jpeg, jpg, png, gif, webp."
-              format: uri
-            detail:
-              type: string
-              description: Specifies the detail level of the image. `low` uses fewer tokens,
-                you can opt in to high resolution using `high`. Default value is
-                `auto`
-              enum:
-                - auto
-                - low
-                - high
-              default: auto
+            image_url:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: "The external URL of the image, must be a supported image types:
+                    jpeg, jpg, png, gif, webp."
+                  format: uri
+                detail:
+                  type: string
+                  description: Specifies the detail level of the image. `low` uses fewer tokens,
+                    you can opt in to high resolution using `high`. Default value is
+                    `auto`
+                  enum:
+                    - auto
+                    - low
+                    - high
+                  default: auto
+              required:
+                - url
           required:
-            - url
-      required:
-        - type
-        - image_url
+            - image_url
     MessageContentRefusalObject:
       title: Refusal
-      type: object
       description: The refusal content generated by the assistant.
-      properties:
-        type:
-          description: Always `refusal`.
-          type: string
-          enum:
+      allOf:
+        - $ref: "#/components/schemas/MessageContentObject"
+        - type: object
+          properties:
+            refusal:
+              type: string
+              nullable: false
+          required:
             - refusal
-          x-stainless-const: true
-        refusal:
-          type: string
-          nullable: false
-      required:
-        - type
-        - refusal
     MessageContentTextAnnotationsFileCitationObject:
       title: File citation
-      type: object
       description: A citation within the message that points to a specific quote from
         a specific File associated with the assistant or the message. Generated
         when the assistant uses the "file_search" tool to search files.
+      allOf:
+        - $ref: "#/components/schemas/MessageContentTextAnnotationsFileObject"
+        - type: object
+          properties:
+            text:
+              description: The text in the message content that needs to be replaced.
+              type: string
+            file_citation:
+              type: object
+              properties:
+                file_id:
+                  description: The ID of the specific File the citation is from.
+                  type: string
+              required:
+                - file_id
+            start_index:
+              type: integer
+              minimum: 0
+            end_index:
+              type: integer
+              minimum: 0
+          required:
+            - text
+            - file_citation
+            - start_index
+            - end_index
+    MessageContentTextAnnotationsFilePathObject:
+      title: File path
+      description: A URL for the file that's generated when the assistant used the
+        `code_interpreter` tool to generate a file.
+      allOf:
+        - $ref: "#/components/schemas/MessageContentTextAnnotationsFileObject"
+        - type: object
+          properties:
+            text:
+              description: The text in the message content that needs to be replaced.
+              type: string
+            file_path:
+              type: object
+              properties:
+                file_id:
+                  description: The ID of the file that was generated.
+                  type: string
+              required:
+                - file_id
+            start_index:
+              type: integer
+              minimum: 0
+            end_index:
+              type: integer
+              minimum: 0
+          required:
+            - text
+            - file_path
+            - start_index
+            - end_index
+    MessageContentTextObject:
+      title: Text
+      description: The text content that is part of a message.
+      allOf:
+        - $ref: "#/components/schemas/MessageContentObject"
+        - type: object
+          properties:
+            text:
+              type: object
+              properties:
+                value:
+                  description: The data that makes up the text.
+                  type: string
+                annotations:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/MessageContentTextAnnotationsFileObject"
+              required:
+                - value
+                - annotations
+          required:
+            - text
+    MessageContentTextAnnotationsFileObject:
+      type: object
       properties:
         type:
-          description: Always `file_citation`.
           type: string
           enum:
             - file_citation
-          x-stainless-const: true
-        text:
-          description: The text in the message content that needs to be replaced.
-          type: string
-        file_citation:
-          type: object
-          properties:
-            file_id:
-              description: The ID of the specific File the citation is from.
-              type: string
-          required:
-            - file_id
-        start_index:
-          type: integer
-          minimum: 0
-        end_index:
-          type: integer
-          minimum: 0
-      required:
-        - type
-        - text
-        - file_citation
-        - start_index
-        - end_index
-    MessageContentTextAnnotationsFilePathObject:
-      title: File path
-      type: object
-      description: A URL for the file that's generated when the assistant used the
-        `code_interpreter` tool to generate a file.
-      properties:
-        type:
-          description: Always `file_path`.
-          type: string
-          enum:
             - file_path
           x-stainless-const: true
-        text:
-          description: The text in the message content that needs to be replaced.
-          type: string
-        file_path:
-          type: object
-          properties:
-            file_id:
-              description: The ID of the file that was generated.
-              type: string
-          required:
-            - file_id
-        start_index:
-          type: integer
-          minimum: 0
-        end_index:
-          type: integer
-          minimum: 0
+      oneOf:
+        - $ref: "#/components/schemas/MessageContentTextAnnotationsFileCitationObject"
+        - $ref: "#/components/schemas/MessageContentTextAnnotationsFilePathObject"
       required:
         - type
-        - text
-        - file_path
-        - start_index
-        - end_index
-    MessageContentTextObject:
-      title: Text
-      type: object
-      description: The text content that is part of a message.
-      properties:
-        type:
-          description: Always `text`.
-          type: string
-          enum:
-            - text
-          x-stainless-const: true
-        text:
-          type: object
-          properties:
-            value:
-              description: The data that makes up the text.
-              type: string
-            annotations:
-              type: array
-              items:
-                oneOf:
-                  - $ref: "#/components/schemas/MessageContentTextAnnotationsFileCitationObject"
-                  - $ref: "#/components/schemas/MessageContentTextAnnotationsFilePathObject"
-                x-oaiExpandable: true
-          required:
-            - value
-            - annotations
-      required:
-        - type
-        - text
+      discriminator:
+        propertyName: type
+        mapping:
+          file_citation: "#/components/schemas/MessageContentTextAnnotationsFileCitationObject"
+          file_path: "#/components/schemas/MessageContentTextAnnotationsFilePathObject"
+      x-oaiExpandable: true
     MessageDeltaContentImageFileObject:
       title: Image file
       type: object
@@ -18827,8 +18827,7 @@ components:
               type: array
               items:
                 oneOf:
-                  - $ref: "#/components/schemas/MessageDeltaContentTextAnnotationsFileCitationObjec\
-                      t"
+                  - $ref: "#/components/schemas/MessageDeltaContentTextAnnotationsFileCitationObject"
                   - $ref: "#/components/schemas/MessageDeltaContentTextAnnotationsFilePathObject"
                 x-oaiExpandable: true
       required:
@@ -18957,12 +18956,13 @@ components:
           description: The content of the message in array of text and/or images.
           type: array
           items:
-            oneOf:
-              - $ref: "#/components/schemas/MessageContentImageFileObject"
-              - $ref: "#/components/schemas/MessageContentImageUrlObject"
-              - $ref: "#/components/schemas/MessageContentTextObject"
-              - $ref: "#/components/schemas/MessageContentRefusalObject"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/MessageContentObject"
+#            oneOf:
+#              - $ref: "#/components/schemas/MessageContentImageFileObject"
+#              - $ref: "#/components/schemas/MessageContentImageUrlObject"
+#              - $ref: "#/components/schemas/MessageContentTextObject"
+#              - $ref: "#/components/schemas/MessageContentRefusalObject"
+#            x-oaiExpandable: true
         assistant_id:
           description: If applicable, the ID of the
             [assistant](/docs/api-reference/assistants) that authored this
@@ -18987,10 +18987,7 @@ components:
                 description: The tools to add this file to.
                 type: array
                 items:
-                  oneOf:
-                    - $ref: "#/components/schemas/AssistantToolsCode"
-                    - $ref: "#/components/schemas/AssistantToolsFileSearchTypeOnly"
-                  x-oaiExpandable: true
+                  $ref: "#/components/schemas/AssistantTool"
           description: A list of files attached to the message, and the tools they were
             added to.
           nullable: true
@@ -19035,6 +19032,32 @@ components:
             "attachments": [],
             "metadata": {}
           }
+    MessageContentObject:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - image_file
+            - image_url
+            - text
+            - refusal
+          x-stainless-const: true
+      oneOf:
+        - $ref: "#/components/schemas/MessageContentImageFileObject"
+        - $ref: "#/components/schemas/MessageContentImageUrlObject"
+        - $ref: "#/components/schemas/MessageContentTextObject"
+        - $ref: "#/components/schemas/MessageContentRefusalObject"
+      required:
+        - type
+      discriminator:
+        propertyName: type
+        mapping:
+          image_file: "#/components/schemas/MessageContentImageFileObject"
+          image_url: "#/components/schemas/MessageContentImageUrlObject"
+          text: "#/components/schemas/MessageContentTextObject"
+          refusal: "#/components/schemas/MessageContentRefusalObject"
+      x-oaiExpandable: true
     MessageRequestContentTextObject:
       title: Text
       type: object
@@ -19301,9 +19324,9 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-          # allOf:
+#          allOf:
           $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-          nullable: true
+#          nullable: true
     ModifyMessageRequest:
       type: object
       additionalProperties: false
@@ -20167,7 +20190,7 @@ components:
         If successful, the server will respond with a
         `conversation.item.truncated` 
 
-        event. 
+        event.
       properties:
         event_id:
           type: string
@@ -23437,67 +23460,46 @@ components:
         reasoning effort can result in faster responses and fewer tokens used
         on reasoning in a response.
     ResponseFormatJsonObject:
-      type: object
-      properties:
-        type:
-          type: string
-          description: "The type of response format being defined: `json_object`"
-          enum:
-            - json_object
-          x-stainless-const: true
-      required:
-        - type
+      allOf:
+        - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
     ResponseFormatJsonSchema:
-      type: object
-      properties:
-        type:
-          type: string
-          description: "The type of response format being defined: `json_schema`"
-          enum:
-            - json_schema
-          x-stainless-const: true
-        json_schema:
-          type: object
+      allOf:
+        - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+        - type: object
           properties:
-            description:
-              type: string
-              description: A description of what the response format is for, used by the model
-                to determine how to respond in the format.
-            name:
-              type: string
-              description: The name of the response format. Must be a-z, A-Z, 0-9, or contain
-                underscores and dashes, with a maximum length of 64.
-            schema:
-              $ref: "#/components/schemas/ResponseFormatJsonSchemaSchema"
-            strict:
-              type: boolean
-              nullable: true
-              default: false
-              description: Whether to enable strict schema adherence when generating the
-                output. If set to true, the model will always follow the exact
-                schema defined in the `schema` field. Only a subset of JSON
-                Schema is supported when `strict` is `true`. To learn more, read
-                the [Structured Outputs guide](/docs/guides/structured-outputs).
+            json_schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                  description: A description of what the response format is for, used by the model
+                    to determine how to respond in the format.
+                name:
+                  type: string
+                  description: The name of the response format. Must be a-z, A-Z, 0-9, or contain
+                    underscores and dashes, with a maximum length of 64.
+                schema:
+                  $ref: "#/components/schemas/ResponseFormatJsonSchemaSchema"
+                strict:
+                  type: boolean
+                  nullable: true
+                  default: false
+                  description: Whether to enable strict schema adherence when generating the
+                    output. If set to true, the model will always follow the exact
+                    schema defined in the `schema` field. Only a subset of JSON
+                    Schema is supported when `strict` is `true`. To learn more, read
+                    the [Structured Outputs guide](/docs/guides/structured-outputs).
+              required:
+                - name
           required:
-            - name
-      required:
-        - type
-        - json_schema
+            - json_schema
     ResponseFormatJsonSchemaSchema:
       type: object
       description: The schema for the response format, described as a JSON Schema object.
       additionalProperties: true
     ResponseFormatText:
-      type: object
-      properties:
-        type:
-          type: string
-          description: "The type of response format being defined: `text`"
-          enum:
-            - text
-          x-stainless-const: true
-      required:
-        - type
+      allOf:
+        - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
     RunCompletionUsage:
       type: object
       description: Usage statistics related to the run. This value will be `null` if
@@ -23650,11 +23652,7 @@ components:
           type: array
           maxItems: 20
           items:
-            oneOf:
-              - $ref: "#/components/schemas/AssistantToolsCode"
-              - $ref: "#/components/schemas/AssistantToolsFileSearch"
-              - $ref: "#/components/schemas/AssistantToolsFunction"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/AssistantTool"
         metadata:
           $ref: "#/components/schemas/Metadata"
         usage:
@@ -23684,19 +23682,19 @@ components:
             over the course of the run.
           minimum: 256
         truncation_strategy:
-          allOf:
-            - $ref: "#/components/schemas/TruncationObject"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/TruncationObject"
+          # nullable: true
         tool_choice:
           # allOf:
-          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-          nullable: true
+          $ref: "#/components/schemas/AssistantsNamedToolChoice"
+          # nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
           # allOf:
           $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-          nullable: true
+          # nullable: true
       required:
         - id
         - object
@@ -23887,10 +23885,8 @@ components:
               items:
                 type: object
                 oneOf:
-                  - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputLogsObjec\
-                      t"
-                  - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputImageObje\
-                      ct"
+                  - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputLogsObject"
+                  - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputImageObject"
                 x-oaiExpandable: true
       required:
         - index
@@ -24144,8 +24140,7 @@ components:
           x-oaiTypeLabel: map
           properties:
             ranking_options:
-              $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchRankingOptionsObje\
-                ct"
+              $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchRankingOptionsObject"
             results:
               type: array
               description: The results of the file search.
@@ -25001,9 +24996,9 @@ components:
           type: string
           nullable: true
         expires_after:
-          allOf:
-            - $ref: "#/components/schemas/VectorStoreExpirationAfter"
-            - nullable: true
+#          allOf:
+          $ref: "#/components/schemas/VectorStoreExpirationAfter"
+#            - nullable: true
         metadata:
           $ref: "#/components/schemas/Metadata"
     Upload:
@@ -25048,10 +25043,10 @@ components:
             - upload
           x-stainless-const: true
         file:
-          allOf:
-            - $ref: "#/components/schemas/OpenAIFile"
-            - nullable: true
-              description: The ready File object after the Upload is completed.
+#          allOf:
+          $ref: "#/components/schemas/OpenAIFile"
+#            - nullable: true
+#          description: The ready File object after the Upload is completed.
       required:
         - bytes
         - created_at
