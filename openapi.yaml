@@ -11680,8 +11680,9 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-#          nullable: true
+          # allOf:
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # nullable: true
       required:
         - id
         - object
@@ -11714,29 +11715,6 @@ components:
             "temperature": 1.0,
             "response_format": "auto"
           }
-    AssistantTool:
-      type: object
-      properties:
-        type:
-          type: string
-          enum:
-            - code_interpreter
-            - file_search
-            - function
-          x-stainless-const: true
-      oneOf:
-        - $ref: "#/components/schemas/AssistantToolsCode"
-        - $ref: "#/components/schemas/AssistantToolsFileSearch"
-        - $ref: "#/components/schemas/AssistantToolsFunction"
-      required:
-        - type
-      discriminator:
-        propertyName: type
-        mapping:
-          code_interpreter: "#/components/schemas/AssistantToolsCode"
-          file_search: "#/components/schemas/AssistantToolsFileSearch"
-          function: "#/components/schemas/AssistantToolsFunction"
-      x-oaiExpandable: true
     AssistantStreamEvent:
       description: >
         Represents an event emitted when streaming a Run.
@@ -11821,36 +11799,73 @@ components:
         - gpt-3.5-turbo-1106
         - gpt-3.5-turbo-0125
         - gpt-3.5-turbo-16k-0613
+    AssistantTool:
+      oneOf:
+        - $ref: "#/components/schemas/AssistantToolsCode"
+        - $ref: "#/components/schemas/AssistantToolsFileSearch"
+        - $ref: "#/components/schemas/AssistantToolsFunction"
+      discriminator:
+        propertyName: type
+        mapping:
+          code_interpreter: "#/components/schemas/AssistantToolsCode"
+          file_search: "#/components/schemas/AssistantToolsFileSearch"
+          function: "#/components/schemas/AssistantToolsFunction"
+      x-oaiExpandable: true
+    AssistantToolOrTypeOnly:
+      oneOf:
+        - $ref: "#/components/schemas/AssistantToolsCode"
+        - $ref: "#/components/schemas/AssistantToolsFileSearchTypeOnly"
+      discriminator:
+        propertyName: type
+        mapping:
+          code_interpreter: "#/components/schemas/AssistantToolsCode"
+          file_search: "#/components/schemas/AssistantToolsFileSearchTypeOnly"
+      x-oaiExpandable: true
     AssistantToolsCode:
-      allOf:
-        - $ref: "#/components/schemas/AssistantTool"
+      type: object
+      title: Code interpreter tool
+      properties:
+        type:
+          type: string
+          description: "The type of tool being defined: `code_interpreter`"
+          # enum:
+          #   - code_interpreter
+          x-stainless-const: true
+      required:
+        - type
     AssistantToolsFileSearch:
-      allOf:
-        - $ref: "#/components/schemas/AssistantTool"
-        - type: object
-          title: FileSearch tool
+      type: object
+      title: FileSearch tool
+      properties:
+        type:
+          type: string
+          description: "The type of tool being defined: `file_search`"
+          # enum:
+          #   - file_search
+          x-stainless-const: true
+        file_search:
+          type: object
+          description: Overrides for the file search tool.
           properties:
-            file_search:
-              type: object
-              description: Overrides for the file search tool.
-              properties:
-                max_num_results:
-                  type: integer
-                  minimum: 1
-                  maximum: 50
-                  description: >
-                    The maximum number of results the file search tool should
-                    output. The default is 20 for `gpt-4*` models and 5 for
-                    `gpt-3.5-turbo`. This number should be between 1 and 50
-                    inclusive.
-    
-    
-                    Note that the file search tool may output fewer than
-                    `max_num_results` results. See the [file search tool
-                    documentation](/docs/assistants/tools/file-search#customizing-file-search-settings)
-                    for more information.
-                ranking_options:
-                  $ref: "#/components/schemas/FileSearchRankingOptions"
+            max_num_results:
+              type: integer
+              minimum: 1
+              maximum: 50
+              description: >
+                The maximum number of results the file search tool should
+                output. The default is 20 for `gpt-4*` models and 5 for
+                `gpt-3.5-turbo`. This number should be between 1 and 50
+                inclusive.
+
+
+                Note that the file search tool may output fewer than
+                `max_num_results` results. See the [file search tool
+                documentation](/docs/assistants/tools/file-search#customizing-file-search-settings)
+                for more information.
+            ranking_options:
+              $ref: "#/components/schemas/FileSearchRankingOptions"
+      required:
+        - type
     AssistantToolsFileSearchTypeOnly:
       type: object
       title: FileSearch tool
@@ -11858,22 +11873,28 @@ components:
         type:
           type: string
           description: "The type of tool being defined: `file_search`"
-          enum:
-            - file_search
+          # enum:
+          #   - file_search
           x-stainless-const: true
       required:
         - type
     AssistantToolsFunction:
-      allOf:
-        - $ref: "#/components/schemas/AssistantTool"
-        - type: object
-          title: Function tool
-          properties:
-            function:
-              $ref: "#/components/schemas/FunctionObject"
-          required:
-            - function
-    AssistantsApiResponseFormatOption:
+      type: object
+      title: Function tool
+      properties:
+        type:
+          type: string
+          description: "The type of tool being defined: `function`"
+          # enum:
+          #   - function
+          x-stainless-const: true
+        function:
+          $ref: "#/components/schemas/FunctionObject"
+      required:
+        - type
+        - function
+    
+    ResponseFormatOption:
       description: >
         Specifies the format that the model must output. Compatible with
         [GPT-4o](/docs/models#gpt-4o), [GPT-4
@@ -11899,24 +11920,13 @@ components:
         partially cut off if `finish_reason="length"`, which indicates the
         generation exceeded `max_tokens` or the conversation exceeded the max
         context length.
-      type: object
-      properties:
-        type:
-          type: string
-          enum:
-            - text
-            - json_object
-            - json_schema
-          x-stainless-const: true
-      required:
-        - type
       oneOf:
-#        - type: string
-#          description: |
-#            `auto` is the default value
-#          enum:
-#            - auto
-#          x-stainless-const: true
+      # type: string
+      # description: |
+      #   `auto` is the default value
+      # enum:
+      #   - auto
+      # x-stainless-const: true
         - $ref: "#/components/schemas/ResponseFormatText"
         - $ref: "#/components/schemas/ResponseFormatJsonObject"
         - $ref: "#/components/schemas/ResponseFormatJsonSchema"
@@ -11927,35 +11937,35 @@ components:
           json_object: "#/components/schemas/ResponseFormatJsonObject"
           json_schema: "#/components/schemas/ResponseFormatJsonSchema"
       x-oaiExpandable: true
-#    AssistantsApiToolChoiceOption:
-#      description: >
-#        Controls which (if any) tool is called by the model.
-#
-#        `none` means the model will not call any tools and instead generates a
-#        message.
-#
-#        `auto` is the default value and means the model can pick between
-#        generating a message or calling one or more tools.
-#
-#        `required` means the model must call one or more tools before responding
-#        to the user.
-#
-#        Specifying a particular tool like `{"type": "file_search"}` or `{"type":
-#        "function", "function": {"name": "my_function"}}` forces the model to
-#        call that tool.
-#      oneOf:
-#        - type: string
-#          description: >
-#            `none` means the model will not call any tools and instead generates
-#            a message. `auto` means the model can pick between generating a
-#            message or calling one or more tools. `required` means the model
-#            must call one or more tools before responding to the user.
-#          enum:
-#            - none
-#            - auto
-#            - required
-#        - $ref: "#/components/schemas/AssistantsNamedToolChoice"
-#      x-oaiExpandable: true
+    AssistantsApiToolChoiceOption:
+      $ref: "#/components/schemas/AssistantsNamedToolChoice"
+      # description: >
+      #   Controls which (if any) tool is called by the model.
+
+      #   `none` means the model will not call any tools and instead generates a
+      #   message.
+
+      #   `auto` is the default value and means the model can pick between
+      #   generating a message or calling one or more tools.
+
+      #   `required` means the model must call one or more tools before responding
+      #   to the user.
+
+      #   Specifying a particular tool like `{"type": "file_search"}` or `{"type":
+      #   "function", "function": {"name": "my_function"}}` forces the model to
+      #   call that tool.
+      # oneOf:
+      # type: string
+      # description: >
+      #   `none` means the model will not call any tools and instead generates
+      #   a message. `auto` means the model can pick between generating a
+      #   message or calling one or more tools. `required` means the model
+      #   must call one or more tools before responding to the user.
+      # enum:
+      #   - none
+      #   - auto
+      #   - required
+      # x-oaiExpandable: true
     AssistantsNamedToolChoice:
       type: object
       description: Specifies a tool the model should use. Use to force the model to
@@ -12796,19 +12806,19 @@ components:
         Messages sent by the model in response to user messages.
       properties:
         content:
-          x-oaiExpandable: true
-          nullable: true
-          oneOf:
-            - type: string
-              description: The contents of the assistant message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type. Can be one or more
-                of type `text`, or exactly one of type `refusal`.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/ChatCompletionRequestAssistantMessageContentPart"
-              minItems: 1
+          # x-oaiExpandable: true
+          # nullable: true
+          # oneOf:
+          #   - type: string
+          #     description: The contents of the assistant message.
+          #     title: Text content
+          type: array
+          # description: An array of content parts with a defined type. Can be one or more
+          #   of type `text`, or exactly one of type `refusal`.
+          title: Array of content parts
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestAssistantMessageContentPart"
+          minItems: 1
           description: >
             The contents of the assistant message. Required unless `tool_calls`
             or `function_call` is specified.
@@ -12818,8 +12828,8 @@ components:
           description: The refusal message by the assistant.
         role:
           type: string
-          enum:
-            - assistant
+          # enum:
+          #   - assistant
           description: The role of the messages author, in this case `assistant`.
           x-stainless-const: true
         name:
@@ -12865,8 +12875,14 @@ components:
       required:
         - role
     ChatCompletionRequestAssistantMessageContentPart:
-      $ref: "#/components/schemas/ChatCompletionRequestMessageContentPart"
-#      x-oaiExpandable: true
+      oneOf:
+        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartRefusal"
+      discriminator:
+        propertyName: type
+        mapping:
+          text: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+          refusal: "#/components/schemas/ChatCompletionRequestMessageContentPartRefusal"
     ChatCompletionRequestDeveloperMessage:
       type: object
       title: Developer message
@@ -12886,16 +12902,16 @@ components:
           #     description: The contents of the developer message.
           #     title: Text content
           type: array
-#          description: An array of content parts with a defined type. For developer
-#            messages, only type `text` is supported.
+          # description: An array of content parts with a defined type. For developer
+          #   messages, only type `text` is supported.
           title: Array of content parts
           items:
-            $ref: "#/components/schemas/ChatCompletionRequestMessageContentPart"
+            $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
           minItems: 1
         role:
           type: string
-          enum:
-            - developer
+          # enum:
+          #   - developer
           description: The role of the messages author, in this case `developer`.
           x-stainless-const: true
         name:
@@ -12912,8 +12928,8 @@ components:
       properties:
         role:
           type: string
-          enum:
-            - function
+          # enum:
+          #   - function
           description: The role of the messages author, in this case `function`.
           x-stainless-const: true
         content:
@@ -12935,86 +12951,114 @@ components:
         - $ref: "#/components/schemas/ChatCompletionRequestAssistantMessage"
         - $ref: "#/components/schemas/ChatCompletionRequestToolMessage"
         - $ref: "#/components/schemas/ChatCompletionRequestFunctionMessage"
-      x-oaiExpandable: true
+      discriminator:
+        propertyName: role
+        mapping:
+          system: "#/components/schemas/ChatCompletionRequestSystemMessage"
+          user: "#/components/schemas/ChatCompletionRequestUserMessage"
+          assistant: "#/components/schemas/ChatCompletionRequestAssistantMessage"
+          developer: "#/components/schemas/ChatCompletionRequestDeveloperMessage"
+          function: "#/components/schemas/ChatCompletionRequestFunctionMessage"
+          tool: "#/components/schemas/ChatCompletionRequestToolMessage"
     ChatCompletionRequestMessageContentPartAudio:
-      allOf:
-        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPart"
-        - type: object
-          title: Audio content part
-          description: |
-            Learn about [audio inputs](/docs/guides/audio).
+      type: object
+      title: Audio content part
+      description: |
+        Learn about [audio inputs](/docs/guides/audio).
+      properties:
+        type:
+          type: string
+          # enum:
+          #   - input_audio
+          description: The type of the content part. Always `input_audio`.
+          x-stainless-const: true
+        input_audio:
+          type: object
           properties:
-            input_audio:
-              type: object
-              properties:
-                data:
-                  type: string
-                  description: Base64 encoded audio data.
-                format:
-                  type: string
-                  enum:
-                    - wav
-                    - mp3
-                  description: >
-                    The format of the encoded audio data. Currently supports "wav"
-                    and "mp3".
-              required:
-                - data
-                - format
+            data:
+              type: string
+              description: Base64 encoded audio data.
+            format:
+              type: string
+              enum:
+                - wav
+                - mp3
+              description: >
+                The format of the encoded audio data. Currently supports "wav"
+                and "mp3".
           required:
-            - input_audio
+            - data
+            - format
+      required:
+        - type
+        - input_audio
     ChatCompletionRequestMessageContentPartImage:
-      allOf:
-        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPart"
-        - type: object
-          title: Image content part
-          description: |
-            Learn about [image inputs](/docs/guides/vision).
+      type: object
+      title: Image content part
+      description: |
+        Learn about [image inputs](/docs/guides/vision).
+      properties:
+        type:
+          type: string
+          # enum:
+          #   - image_url
+          description: The type of the content part.
+          x-stainless-const: true
+        image_url:
+          type: object
           properties:
-            image_url:
-              type: object
-              properties:
-                url:
-                  type: string
-                  description: Either a URL of the image or the base64 encoded image data.
-                  format: uri
-                detail:
-                  type: string
-                  description: Specifies the detail level of the image. Learn more in the [Vision
-                    guide](/docs/guides/vision#low-or-high-fidelity-image-understanding).
-                  enum:
-                    - auto
-                    - low
-                    - high
-                  default: auto
-              required:
-                - url
+            url:
+              type: string
+              description: Either a URL of the image or the base64 encoded image data.
+              format: uri
+            detail:
+              type: string
+              description: Specifies the detail level of the image. Learn more in the [Vision
+                guide](/docs/guides/vision#low-or-high-fidelity-image-understanding).
+              enum:
+                - auto
+                - low
+                - high
+              default: auto
           required:
-            - image_url
+            - url
+      required:
+        - type
+        - image_url
     ChatCompletionRequestMessageContentPartRefusal:
-      allOf:
-        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPart"
-        - type: object
-          title: Refusal content part
-          properties:
-            refusal:
-              type: string
-              description: The refusal message generated by the model.
-          required:
-            - refusal
+      type: object
+      title: Refusal content part
+      properties:
+        type:
+          type: string
+          # enum:
+          #   - refusal
+          description: The type of the content part.
+          x-stainless-const: true
+        refusal:
+          type: string
+          description: The refusal message generated by the model.
+      required:
+        - type
+        - refusal
     ChatCompletionRequestMessageContentPartText:
-      allOf:
-        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPart"
-        - type: object
-          title: Text content part
-          description: |
-            Learn about [text inputs](/docs/guides/text-generation).
-          properties:
-            text:
-              type: string
-              description: The text content.
-          required:
-            - text
+      type: object
+      title: Text content part
+      description: |
+        Learn about [text inputs](/docs/guides/text-generation).
+      properties:
+        type:
+          type: string
+          # enum:
+          #   - text
+          description: The type of the content part.
+          x-stainless-const: true
+        text:
+          type: string
+          description: The text content.
+      required:
+        - type
+        - text
     ChatCompletionRequestSystemMessage:
       type: object
       title: System message
@@ -13029,21 +13073,21 @@ components:
       properties:
         content:
           description: The contents of the system message.
-          oneOf:
-            - type: string
-              description: The contents of the system message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type. For system messages,
-                only type `text` is supported.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/ChatCompletionRequestSystemMessageContentPart"
-              minItems: 1
+          # oneOf:
+          #   - type: string
+          #     description: The contents of the system message.
+          #     title: Text content
+          type: array
+          # description: An array of content parts with a defined type. For system messages,
+          #   only type `text` is supported.
+          title: Array of content parts
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestSystemMessageContentPart"
+          minItems: 1
         role:
           type: string
-          enum:
-            - system
+          # enum:
+          #   - system
           description: The role of the messages author, in this case `system`.
           x-stainless-const: true
         name:
@@ -13063,22 +13107,22 @@ components:
       properties:
         role:
           type: string
-          enum:
-            - tool
+          # enum:
+          #   - tool
           description: The role of the messages author, in this case `tool`.
           x-stainless-const: true
         content:
-          oneOf:
-            - type: string
-              description: The contents of the tool message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type. For tool messages,
-                only type `text` is supported.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/ChatCompletionRequestToolMessageContentPart"
-              minItems: 1
+          # oneOf:
+          #   - type: string
+          #     description: The contents of the tool message.
+          #     title: Text content
+          type: array
+          description: An array of content parts with a defined type. For tool messages,
+            only type `text` is supported.
+          title: Array of content parts
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestToolMessageContentPart"
+          minItems: 1
           description: The contents of the tool message.
         tool_call_id:
           type: string
@@ -13111,13 +13155,13 @@ components:
             #      the response. Can contain text, image, or audio inputs.
           title: Array of content parts
           items:
-            $ref: "#/components/schemas/ChatCompletionRequestMessageContentPart"
+            $ref: "#/components/schemas/ChatCompletionRequestUserMessageContentPart"
           minItems: 1
           x-oaiExpandable: true
         role:
           type: string
-          enum:
-            - user
+          # enum:
+          #   - user
           description: The role of the messages author, in this case `user`.
           x-stainless-const: true
         name:
@@ -13127,34 +13171,17 @@ components:
       required:
         - content
         - role
-    # ChatCompletionRequestUserMessageContentPart:
-    #   $ref: "#/components/schemas/ChatCompletionRequestMessageContentPart"
-#      x-oaiExpandable: true
-    ChatCompletionRequestMessageContentPart:
-      type: object
-      properties:
-        type:
-          type: string
-          enum:
-            - text
-            - image_url
-            - input_audio
-            - refusal
-          x-stainless-const: true
+    ChatCompletionRequestUserMessageContentPart:
       oneOf:
         - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
         - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartImage"
         - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartAudio"
-        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartRefusal"
       discriminator:
         propertyName: type
         mapping:
           text: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
           image_url: "#/components/schemas/ChatCompletionRequestMessageContentPartImage"
           input_audio: "#/components/schemas/ChatCompletionRequestMessageContentPartAudio"
-          refusal: "#/components/schemas/ChatCompletionRequestMessageContentPartRefusal"
-      required:
-        - type
     ChatCompletionResponseMessage:
       type: object
       description: A chat completion message generated by the model.
@@ -13476,31 +13503,36 @@ components:
         - completion_tokens
         - total_tokens
     CostsResult:
+      type: object
       description: The aggregated costs details of the specific time bucket.
-      allOf:
-        - $ref: "#/components/schemas/UsageResult"
-        - type: object
+      properties:
+        object:
+          type: string
+          # enum:
+          #   - organization.costs.result
+          x-stainless-const: true
+        amount:
+          type: object
+          description: The monetary value in its associated currency.
           properties:
-            amount:
-              type: object
-              description: The monetary value in its associated currency.
-              properties:
-                value:
-                  type: number
-                  description: The numeric value of the cost.
-                currency:
-                  type: string
-                  description: Lowercase ISO-4217 currency e.g. "usd"
-            line_item:
+            value:
+              type: number
+              description: The numeric value of the cost.
+            currency:
               type: string
-              nullable: true
-              description: When `group_by=line_item`, this field provides the line item of the
-                grouped costs result.
-            project_id:
-              type: string
-              nullable: true
-              description: When `group_by=project_id`, this field provides the project ID of
-                the grouped costs result.
+              description: Lowercase ISO-4217 currency e.g. "usd"
+        line_item:
+          type: string
+          nullable: true
+          description: When `group_by=line_item`, this field provides the line item of the
+            grouped costs result.
+        project_id:
+          type: string
+          nullable: true
+          description: When `group_by=project_id`, this field provides the project ID of
+            the grouped costs result.
+      required:
+        - object
       x-oaiMeta:
         name: Costs object
         example: |
@@ -13518,16 +13550,16 @@ components:
       additionalProperties: false
       properties:
         model:
-#          description: >
-#            ID of the model to use. You can use the [List
-#            models](/docs/api-reference/models/list) API to see all of your
-#            available models, or see our [Model overview](/docs/models) for
-#            descriptions of them.
-#          example: gpt-4o
-          # anyOf:
-          # type: string
-          $ref: "#/components/schemas/AssistantSupportedModels"
-#          x-oaiTypeLabel: string
+          description: >
+            ID of the model to use. You can use the [List
+            models](/docs/api-reference/models/list) API to see all of your
+            available models, or see our [Model overview](/docs/models) for
+            descriptions of them.
+          example: gpt-4o
+          anyOf:
+            - type: string
+            - $ref: "#/components/schemas/AssistantSupportedModels"
+          x-oaiTypeLabel: string
         name:
           description: |
             The name of the assistant. The maximum length is 256 characters.
@@ -13559,11 +13591,7 @@ components:
           type: array
           maxItems: 128
           items:
-            oneOf:
-              - $ref: "#/components/schemas/AssistantToolsCode"
-              - $ref: "#/components/schemas/AssistantToolsFileSearch"
-              - $ref: "#/components/schemas/AssistantToolsFunction"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/AssistantTool"
         tool_resources:
           type: object
           description: >
@@ -13711,8 +13739,9 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-#          nullable: true
+          # allOf:
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # nullable: true
       required:
         - model
     CreateChatCompletionFunctionResponse:
@@ -14044,19 +14073,20 @@ components:
         modalities:
           $ref: "#/components/schemas/ChatCompletionModalities"
         prediction:
-#          nullable: true
-#          x-oaiExpandable: true
-#          description: >
-#            Configuration for a [Predicted
-#            Output](/docs/guides/predicted-outputs),
-#
-#            which can greatly improve response times when large parts of the
-#            model
-#
-#            response are known ahead of time. This is most common when you are
-#
-#            regenerating a file with only minor changes to most of the content.
-          $ref: "#/components/schemas/PredictionContent"
+          nullable: true
+          x-oaiExpandable: true
+          description: >
+            Configuration for a [Predicted
+            Output](/docs/guides/predicted-outputs),
+
+            which can greatly improve response times when large parts of the
+            model
+
+            response are known ahead of time. This is most common when you are
+
+            regenerating a file with only minor changes to most of the content.
+          oneOf:
+            - $ref: "#/components/schemas/PredictionContent"
         audio:
           type: object
           nullable: true
@@ -14114,49 +14144,50 @@ components:
 
             to talk about new topics.
         response_format:
-          description: >
-            An object specifying the format that the model must output.
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # description: >
+          #   An object specifying the format that the model must output.
 
 
-            Setting to `{ "type": "json_schema", "json_schema": {...} }` enables
+          #   Setting to `{ "type": "json_schema", "json_schema": {...} }` enables
 
-            Structured Outputs which ensures the model will match your supplied
-            JSON
+          #   Structured Outputs which ensures the model will match your supplied
+          #   JSON
 
-            schema. Learn more in the [Structured Outputs
+          #   schema. Learn more in the [Structured Outputs
 
-            guide](/docs/guides/structured-outputs).
-
-
-            Setting to `{ "type": "json_object" }` enables JSON mode, which
-            ensures
-
-            the message the model generates is valid JSON.
+          #   guide](/docs/guides/structured-outputs).
 
 
-            **Important:** when using JSON mode, you **must** also instruct the
-            model
+          #   Setting to `{ "type": "json_object" }` enables JSON mode, which
+          #   ensures
 
-            to produce JSON yourself via a system or user message. Without this,
-            the
+          #   the message the model generates is valid JSON.
 
-            model may generate an unending stream of whitespace until the
-            generation
 
-            reaches the token limit, resulting in a long-running and seemingly
-            "stuck"
+          #   **Important:** when using JSON mode, you **must** also instruct the
+          #   model
 
-            request. Also note that the message content may be partially cut off
-            if
+          #   to produce JSON yourself via a system or user message. Without this,
+          #   the
 
-            `finish_reason="length"`, which indicates the generation exceeded
+          #   model may generate an unending stream of whitespace until the
+          #   generation
 
-            `max_tokens` or the conversation exceeded the max context length.
-          oneOf:
-            - $ref: "#/components/schemas/ResponseFormatText"
-            - $ref: "#/components/schemas/ResponseFormatJsonObject"
-            - $ref: "#/components/schemas/ResponseFormatJsonSchema"
-          x-oaiExpandable: true
+          #   reaches the token limit, resulting in a long-running and seemingly
+          #   "stuck"
+
+          #   request. Also note that the message content may be partially cut off
+          #   if
+
+          #   `finish_reason="length"`, which indicates the generation exceeded
+
+          #   `max_tokens` or the conversation exceeded the max context length.
+          # oneOf:
+          #   - $ref: "#/components/schemas/ResponseFormatText"
+          #   - $ref: "#/components/schemas/ResponseFormatJsonObject"
+          #   - $ref: "#/components/schemas/ResponseFormatJsonSchema"
+          # x-oaiExpandable: true
         seed:
           type: integer
           format: int64
@@ -14622,13 +14653,13 @@ components:
             models](/docs/api-reference/models/list) API to see all of your
             available models, or see our [Model overview](/docs/models) for
             descriptions of them.
-          # anyOf:
-          # type: string
-          type: string
-          enum:
-            - gpt-3.5-turbo-instruct
-            - davinci-002
-            - babbage-002
+          anyOf:
+            - type: string
+            - type: string
+              enum:
+                - gpt-3.5-turbo-instruct
+                - davinci-002
+                - babbage-002
           x-oaiTypeLabel: string
         prompt:
           description: >
@@ -14662,7 +14693,7 @@ components:
             #     minItems: 1
             #     items:
             #       type: integer
-          #   example: "[[1212, 318, 257, 1332, 13]]"
+            #   example: "[[1212, 318, 257, 1332, 13]]"
         best_of:
           type: integer
           default: 1
@@ -15052,13 +15083,13 @@ components:
             available models, or see our [Model overview](/docs/models) for
             descriptions of them.
           example: text-embedding-3-small
-          # anyOf:
-          # type: string
-          type: string
-          enum:
-            - text-embedding-ada-002
-            - text-embedding-3-small
-            - text-embedding-3-large
+          anyOf:
+            - type: string
+            - type: string
+              enum:
+                - text-embedding-ada-002
+                - text-embedding-3-small
+                - text-embedding-3-large
           x-oaiTypeLabel: string
         encoding_format:
           description: The format to return the embeddings in. Can be either `float` or
@@ -15158,14 +15189,14 @@ components:
             [supported
             models](/docs/guides/fine-tuning#which-models-can-be-fine-tuned).
           example: gpt-4o-mini
-          # anyOf:
-          # type: string
-          type: string
-          enum:
-            - babbage-002
-            - davinci-002
-            - gpt-3.5-turbo
-            - gpt-4o-mini
+          anyOf:
+            - type: string
+            - type: string
+              enum:
+                - babbage-002
+                - davinci-002
+                - gpt-3.5-turbo
+                - gpt-4o-mini
           x-oaiTypeLabel: string
         training_file:
           description: >
@@ -15213,7 +15244,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-              #   maximum: 256
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
@@ -15243,7 +15274,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-              #   maximum: 50
+                #   maximum: 50
               default: auto
           deprecated: true
         suffix:
@@ -15625,7 +15656,7 @@ components:
             #       - $ref: "#/components/schemas/MessageContentImageUrlObject"
             #       - $ref: "#/components/schemas/MessageRequestContentTextObject"
             #     x-oaiExpandable: true
-          #   minItems: 1
+            #   minItems: 1
           x-oaiExpandable: true
         attachments:
           type: array
@@ -15639,10 +15670,7 @@ components:
                 description: The tools to add this file to.
                 type: array
                 items:
-                  oneOf:
-                    - $ref: "#/components/schemas/AssistantToolsCode"
-                    - $ref: "#/components/schemas/AssistantToolsFileSearchTypeOnly"
-                  x-oaiExpandable: true
+                  $ref: "#/components/schemas/AssistantToolOrTypeOnly"
           description: A list of files attached to the message, and the tools they should
             be added to.
           required:
@@ -16128,16 +16156,16 @@ components:
             execute this run.
           type: string
         model:
-#          description: The ID of the [Model](/docs/api-reference/models) to be used to
-#            execute this run. If a value is provided here, it will override the
-#            model associated with the assistant. If not, the model associated
-#            with the assistant will be used.
-#          example: gpt-4o
-          # anyOf:
-          # type: string
-          $ref: "#/components/schemas/AssistantSupportedModels"
-#          x-oaiTypeLabel: string
-#          nullable: true
+          description: The ID of the [Model](/docs/api-reference/models) to be used to
+            execute this run. If a value is provided here, it will override the
+            model associated with the assistant. If not, the model associated
+            with the assistant will be used.
+          example: gpt-4o
+          anyOf:
+            - type: string
+            - $ref: "#/components/schemas/AssistantSupportedModels"
+          x-oaiTypeLabel: string
+          nullable: true
         reasoning_effort:
           $ref: "#/components/schemas/ReasoningEffort"
         instructions:
@@ -16166,11 +16194,7 @@ components:
           type: array
           maxItems: 20
           items:
-            oneOf:
-              - $ref: "#/components/schemas/AssistantToolsCode"
-              - $ref: "#/components/schemas/AssistantToolsFileSearch"
-              - $ref: "#/components/schemas/AssistantToolsFunction"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/AssistantTool"
         metadata:
           $ref: "#/components/schemas/Metadata"
         temperature:
@@ -16228,19 +16252,19 @@ components:
             for more info.
           minimum: 256
         truncation_strategy:
-#          allOf:
+          # allOf:
           $ref: "#/components/schemas/TruncationObject"
-#            - nullable: true
+          # - nullable: true
         tool_choice:
-#          allOf:
-          $ref: "#/components/schemas/AssistantsNamedToolChoice"
-#          nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
+          # nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
-#          allOf:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-#          nullable: true
+          # allOf:
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # nullable: true
       required:
         - assistant_id
     CreateSpeechRequest:
@@ -16360,10 +16384,7 @@ components:
           type: array
           maxItems: 20
           items:
-            oneOf:
-              - $ref: "#/components/schemas/AssistantToolsCode"
-              - $ref: "#/components/schemas/AssistantToolsFileSearch"
-              - $ref: "#/components/schemas/AssistantToolsFunction"
+            $ref: "#/components/schemas/AssistantTool"
         tool_resources:
           type: object
           description: >
@@ -16456,19 +16477,19 @@ components:
             for more info.
           minimum: 256
         truncation_strategy:
-#          allOf:
+          # allOf:
            $ref: "#/components/schemas/TruncationObject"
-#           nullable: true
+          # nullable: true
         tool_choice:
-#          allOf:
-          $ref: "#/components/schemas/AssistantsNamedToolChoice"
-#          nullable: true
+          # allOf:
+          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
+          # nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
-#          allOf:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-#          nullable: true
+          # allOf:
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # nullable: true
       required:
         - assistant_id
     CreateThreadRequest:
@@ -17298,7 +17319,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-              #   maximum: 256
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
@@ -17311,7 +17332,7 @@ components:
               x-stainless-const: true
                 # - type: number
                 #   minimum: 0
-              #   exclusiveMinimum: true
+                #   exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
@@ -17324,7 +17345,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-              #   maximum: 50
+                #   maximum: 50
               default: auto
     FineTuneMethod:
       type: object
@@ -17424,7 +17445,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-              #   maximum: 256
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
@@ -17437,7 +17458,7 @@ components:
               x-stainless-const: true
                 # - type: number
                 #   minimum: 0
-              #   exclusiveMinimum: true
+                #   exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
@@ -17450,7 +17471,7 @@ components:
               x-stainless-const: true
                 # - type: integer
                 #   minimum: 1
-              #   maximum: 50
+                #   maximum: 50
               default: auto
     FineTuningIntegration:
       type: object
@@ -17568,28 +17589,29 @@ components:
                 model parameters
 
                 are updated less frequently, but with lower variance.
-#              oneOf:
+              # oneOf:
               type: string
-#                  enum:
-#                    - auto
+              enum:
+                - auto
               x-stainless-const: true
-#                - type: integer
-#                  minimum: 1
-#                  maximum: 256
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 256
               default: auto
             learning_rate_multiplier:
               description: >
                 Scaling factor for the learning rate. A smaller learning rate
                 may be useful to avoid
+
                 overfitting.
-#              oneOf:
+              # oneOf:
               type: string
-#                  enum:
-#                    - auto
+              enum:
+                - auto
               x-stainless-const: true
-#                - type: number
-#                  minimum: 0
-#                  exclusiveMinimum: true
+                # - type: number
+                #   minimum: 0
+                #   exclusiveMinimum: true
               default: auto
             n_epochs:
               description: >
@@ -17597,14 +17619,14 @@ components:
                 one full cycle
 
                 through the training dataset.
-#              oneOf:
+              # oneOf:
               type: string
-#              enum:
-#                - auto
+              enum:
+                - auto
               x-stainless-const: true
-#                 - type: integer
-#                   minimum: 1
-#                   maximum: 50
+                # - type: integer
+                #   minimum: 1
+                #   maximum: 50
               default: auto
         model:
           type: string
@@ -17659,9 +17681,9 @@ components:
           description: A list of integrations to enable for this fine-tuning job.
           maxItems: 5
           items:
-#            allOf:
+            # oneOf:
             $ref: "#/components/schemas/FineTuningIntegration"
-#            x-oaiExpandable: true
+            # x-oaiExpandable: true
         seed:
           type: integer
           description: The seed used for the fine-tuning job.
@@ -18467,178 +18489,191 @@ components:
         - has_more
     MessageContentImageFileObject:
       title: Image file
+      type: object
       description: References an image [File](/docs/api-reference/files) in the
         content of a message.
-      allOf:
-        - $ref: "#/components/schemas/MessageContentObject"
-        - type: object
+      properties:
+        type:
+          description: Always `image_file`.
+          type: string
+          # enum:
+          #   - image_file
+          x-stainless-const: true
+        image_file:
+          type: object
           properties:
-            image_file:
-              type: object
-              properties:
-                file_id:
-                  description: The [File](/docs/api-reference/files) ID of the image in the
-                    message content. Set `purpose="vision"` when uploading the File
-                    if you need to later display the file content.
-                  type: string
-                detail:
-                  type: string
-                  description: Specifies the detail level of the image if specified by the user.
-                    `low` uses fewer tokens, you can opt in to high resolution using
-                    `high`.
-                  enum:
-                    - auto
-                    - low
-                    - high
-                  default: auto
-              required:
-                - file_id
+            file_id:
+              description: The [File](/docs/api-reference/files) ID of the image in the
+                message content. Set `purpose="vision"` when uploading the File
+                if you need to later display the file content.
+              type: string
+            detail:
+              type: string
+              description: Specifies the detail level of the image if specified by the user.
+                `low` uses fewer tokens, you can opt in to high resolution using
+                `high`.
+              enum:
+                - auto
+                - low
+                - high
+              default: auto
           required:
-            - image_file
+            - file_id
+      required:
+        - type
+        - image_file
     MessageContentImageUrlObject:
       title: Image URL
-      description: References an image URL in the content of a message.
-      allOf:
-        - $ref: "#/components/schemas/MessageContentObject"
-        - type: object
-          properties:
-            image_url:
-              type: object
-              properties:
-                url:
-                  type: string
-                  description: "The external URL of the image, must be a supported image types:
-                    jpeg, jpg, png, gif, webp."
-                  format: uri
-                detail:
-                  type: string
-                  description: Specifies the detail level of the image. `low` uses fewer tokens,
-                    you can opt in to high resolution using `high`. Default value is
-                    `auto`
-                  enum:
-                    - auto
-                    - low
-                    - high
-                  default: auto
-              required:
-                - url
-          required:
-            - image_url
-    MessageContentRefusalObject:
-      title: Refusal
-      description: The refusal content generated by the assistant.
-      allOf:
-        - $ref: "#/components/schemas/MessageContentObject"
-        - type: object
-          properties:
-            refusal:
-              type: string
-              nullable: false
-          required:
-            - refusal
-    MessageContentTextAnnotationsFileCitationObject:
-      title: File citation
-      description: A citation within the message that points to a specific quote from
-        a specific File associated with the assistant or the message. Generated
-        when the assistant uses the "file_search" tool to search files.
-      allOf:
-        - $ref: "#/components/schemas/MessageContentTextAnnotationsFileObject"
-        - type: object
-          properties:
-            text:
-              description: The text in the message content that needs to be replaced.
-              type: string
-            file_citation:
-              type: object
-              properties:
-                file_id:
-                  description: The ID of the specific File the citation is from.
-                  type: string
-              required:
-                - file_id
-            start_index:
-              type: integer
-              minimum: 0
-            end_index:
-              type: integer
-              minimum: 0
-          required:
-            - text
-            - file_citation
-            - start_index
-            - end_index
-    MessageContentTextAnnotationsFilePathObject:
-      title: File path
-      description: A URL for the file that's generated when the assistant used the
-        `code_interpreter` tool to generate a file.
-      allOf:
-        - $ref: "#/components/schemas/MessageContentTextAnnotationsFileObject"
-        - type: object
-          properties:
-            text:
-              description: The text in the message content that needs to be replaced.
-              type: string
-            file_path:
-              type: object
-              properties:
-                file_id:
-                  description: The ID of the file that was generated.
-                  type: string
-              required:
-                - file_id
-            start_index:
-              type: integer
-              minimum: 0
-            end_index:
-              type: integer
-              minimum: 0
-          required:
-            - text
-            - file_path
-            - start_index
-            - end_index
-    MessageContentTextObject:
-      title: Text
-      description: The text content that is part of a message.
-      allOf:
-        - $ref: "#/components/schemas/MessageContentObject"
-        - type: object
-          properties:
-            text:
-              type: object
-              properties:
-                value:
-                  description: The data that makes up the text.
-                  type: string
-                annotations:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/MessageContentTextAnnotationsFileObject"
-              required:
-                - value
-                - annotations
-          required:
-            - text
-    MessageContentTextAnnotationsFileObject:
       type: object
+      description: References an image URL in the content of a message.
       properties:
         type:
           type: string
-          enum:
-            - file_citation
-            - file_path
+          # enum:
+          #   - image_url
+          description: The type of the content part.
           x-stainless-const: true
-      oneOf:
-        - $ref: "#/components/schemas/MessageContentTextAnnotationsFileCitationObject"
-        - $ref: "#/components/schemas/MessageContentTextAnnotationsFilePathObject"
+        image_url:
+          type: object
+          properties:
+            url:
+              type: string
+              description: "The external URL of the image, must be a supported image types:
+                jpeg, jpg, png, gif, webp."
+              format: uri
+            detail:
+              type: string
+              description: Specifies the detail level of the image. `low` uses fewer tokens,
+                you can opt in to high resolution using `high`. Default value is
+                `auto`
+              enum:
+                - auto
+                - low
+                - high
+              default: auto
+          required:
+            - url
       required:
         - type
-      discriminator:
-        propertyName: type
-        mapping:
-          file_citation: "#/components/schemas/MessageContentTextAnnotationsFileCitationObject"
-          file_path: "#/components/schemas/MessageContentTextAnnotationsFilePathObject"
-      x-oaiExpandable: true
+        - image_url
+    MessageContentRefusalObject:
+      title: Refusal
+      type: object
+      description: The refusal content generated by the assistant.
+      properties:
+        type:
+          description: Always `refusal`.
+          type: string
+          # enum:
+          #   - refusal
+          x-stainless-const: true
+        refusal:
+          type: string
+          nullable: false
+      required:
+        - type
+        - refusal
+    MessageContentTextAnnotationsFileCitationObject:
+      title: File citation
+      type: object
+      description: A citation within the message that points to a specific quote from
+        a specific File associated with the assistant or the message. Generated
+        when the assistant uses the "file_search" tool to search files.
+      properties:
+        type:
+          description: Always `file_citation`.
+          type: string
+          # enum:
+          #   - file_citation
+          x-stainless-const: true
+        text:
+          description: The text in the message content that needs to be replaced.
+          type: string
+        file_citation:
+          type: object
+          properties:
+            file_id:
+              description: The ID of the specific File the citation is from.
+              type: string
+          required:
+            - file_id
+        start_index:
+          type: integer
+          minimum: 0
+        end_index:
+          type: integer
+          minimum: 0
+      required:
+        - type
+        - text
+        - file_citation
+        - start_index
+        - end_index
+    MessageContentTextAnnotationsFilePathObject:
+      title: File path
+      type: object
+      description: A URL for the file that's generated when the assistant used the
+        `code_interpreter` tool to generate a file.
+      properties:
+        type:
+          description: Always `file_path`.
+          type: string
+          # enum:
+          #   - file_path
+          x-stainless-const: true
+        text:
+          description: The text in the message content that needs to be replaced.
+          type: string
+        file_path:
+          type: object
+          properties:
+            file_id:
+              description: The ID of the file that was generated.
+              type: string
+          required:
+            - file_id
+        start_index:
+          type: integer
+          minimum: 0
+        end_index:
+          type: integer
+          minimum: 0
+      required:
+        - type
+        - text
+        - file_path
+        - start_index
+        - end_index
+    MessageContentTextObject:
+      title: Text
+      type: object
+      description: The text content that is part of a message.
+      properties:
+        type:
+          description: Always `text`.
+          type: string
+          # enum:
+          #   - text
+          x-stainless-const: true
+        text:
+          type: object
+          properties:
+            value:
+              description: The data that makes up the text.
+              type: string
+            annotations:
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/MessageContentTextAnnotationsFileCitationObject"
+                  - $ref: "#/components/schemas/MessageContentTextAnnotationsFilePathObject"
+                x-oaiExpandable: true
+          required:
+            - value
+            - annotations
+      required:
+        - type
+        - text
     MessageDeltaContentImageFileObject:
       title: Image file
       type: object
@@ -18981,7 +19016,7 @@ components:
                 description: The tools to add this file to.
                 type: array
                 items:
-                  $ref: "#/components/schemas/AssistantTool"
+                  $ref: "#/components/schemas/AssistantToolOrTypeOnly"
           description: A list of files attached to the message, and the tools they were
             added to.
           nullable: true
@@ -19027,23 +19062,11 @@ components:
             "metadata": {}
           }
     MessageContentObject:
-      type: object
-      properties:
-        type:
-          type: string
-          enum:
-            - image_file
-            - image_url
-            - text
-            - refusal
-          x-stainless-const: true
       oneOf:
         - $ref: "#/components/schemas/MessageContentImageFileObject"
         - $ref: "#/components/schemas/MessageContentImageUrlObject"
         - $ref: "#/components/schemas/MessageContentTextObject"
         - $ref: "#/components/schemas/MessageContentRefusalObject"
-      required:
-        - type
       discriminator:
         propertyName: type
         mapping:
@@ -19051,7 +19074,6 @@ components:
           image_url: "#/components/schemas/MessageContentImageUrlObject"
           text: "#/components/schemas/MessageContentTextObject"
           refusal: "#/components/schemas/MessageContentRefusalObject"
-      x-oaiExpandable: true
     MessageRequestContentTextObject:
       title: Text
       type: object
@@ -19070,18 +19092,6 @@ components:
         - type
         - text
     MessageStreamEvent:
-      type: object
-      properties:
-        event:
-          type: string
-          enum:
-            - thread.message.created
-            - thread.message.in_progress
-            - thread.message.delta
-            - thread.message.completed
-            - thread.message.incomplete
-      required: 
-        - event
       discriminator:
         propertyName: event
         mapping:
@@ -19098,62 +19108,52 @@ components:
         - $ref: "#/components/schemas/MessageIncompleteEvent"
     MessageCreatedEvent:
       description: Occurs when a [message](/docs/api-reference/messages/object) is created.
-      allOf:
-        - $ref: "#/components/schemas/MessageStreamEvent"
-        - type: object
-          properties:
-            data:
-              $ref: "#/components/schemas/MessageObject"
-          required:
-            - data
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MessageObject"
+      required:
+        - data
       x-oaiMeta:
         dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
     MessageInProgressEvent:
       description: Occurs when a [message](/docs/api-reference/messages/object) moves to an `in_progress` state.
-      allOf:
-        - $ref: "#/components/schemas/MessageStreamEvent"
-        - type: object
-          properties:
-            data:
-              $ref: "#/components/schemas/MessageObject"
-          required:
-            - data
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MessageObject"
+      required:
+        - data
       x-oaiMeta:
         dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
     MessageDeltaEvent:
       description: Occurs when parts of a [Message](/docs/api-reference/messages/object) are being streamed.
-      allOf:
-        - $ref: "#/components/schemas/MessageStreamEvent"
-        - type: object
-          properties:
-            data:
-              $ref: "#/components/schemas/MessageDeltaObject"
-          required:
-            - data
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MessageDeltaObject"
+      required:
+        - data
       x-oaiMeta:
         dataDescription: "`data` is a [message delta](/docs/api-reference/assistants-streaming/message-delta-object)"
     MessageCompletedEvent:
       description: Occurs when a [message](/docs/api-reference/messages/object) is completed.
-      allOf:
-        - $ref: "#/components/schemas/MessageStreamEvent"
-        - type: object
-          properties:
-            data:
-              $ref: "#/components/schemas/MessageObject"
-          required:
-            - data
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MessageObject"
+      required:
+        - data
       x-oaiMeta:
         dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
     MessageIncompleteEvent:
       description: Occurs when a [message](/docs/api-reference/messages/object) ends before it is completed.
-      allOf:
-        - $ref: "#/components/schemas/MessageStreamEvent"
-        - type: object
-          properties:
-            data:
-              $ref: "#/components/schemas/MessageObject"
-          required:
-            - data
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MessageObject"
+      required:
+        - data
       x-oaiMeta:
         dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
     Metadata:
@@ -19213,11 +19213,11 @@ components:
       additionalProperties: false
       properties:
         model:
-#          description: >
-#            ID of the model to use. You can use the [List
-#            models](/docs/api-reference/models/list) API to see all of your
-#            available models, or see our [Model overview](/docs/models) for
-#            descriptions of them.
+        #  description: >
+        #    ID of the model to use. You can use the [List
+        #    models](/docs/api-reference/models/list) API to see all of your
+        #    available models, or see our [Model overview](/docs/models) for
+        #    descriptions of them.
           # anyOf:
           # type: string
           $ref: "#/components/schemas/AssistantSupportedModels"
@@ -19252,11 +19252,6 @@ components:
           type: array
           maxItems: 128
           items:
-            # oneOf:
-            #   - $ref: "#/components/schemas/AssistantToolsCode"
-            #   - $ref: "#/components/schemas/AssistantToolsFileSearch"
-            #   - $ref: "#/components/schemas/AssistantToolsFunction"
-            # x-oaiExpandable: true
             $ref: "#/components/schemas/AssistantTool"
         tool_resources:
           type: object
@@ -19322,9 +19317,9 @@ components:
 
             We generally recommend altering this or temperature but not both.
         response_format:
-#          allOf:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-#          nullable: true
+          # allOf:
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # nullable: true
     ModifyMessageRequest:
       type: object
       additionalProperties: false
@@ -19446,12 +19441,21 @@ components:
             "purpose": "assistants",
           }
     OtherChunkingStrategyResponseParam:
+      type: object
       title: Other Chunking Strategy
       description: This is returned when the chunking strategy is unknown. Typically,
         this is because the file was indexed before the `chunking_strategy`
         concept was introduced in the API.
-      allOf:
-        - $ref: "#/components/schemas/ChunkingStrategyResponseParam"
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          description: Always `other`.
+          # enum:
+          #   - other
+          x-stainless-const: true
+      required:
+        - type
     ParallelToolCalls:
       description: Whether to enable [parallel function
         calling](/docs/guides/function-calling#configuring-parallel-function-calling)
@@ -19463,7 +19467,9 @@ components:
       title: Static Content
       description: >
         Static predicted output content, such as the content of a text file that
-        is being regenerated.
+        is
+
+        being regenerated.
       required:
         - type
         - content
@@ -19497,7 +19503,7 @@ components:
             the response. Can contain text inputs.
           title: Array of content parts
           items:
-            $ref: "#/components/schemas/ChatCompletionRequestMessageContentPart"
+            $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
           minItems: 1
     Project:
       type: object
@@ -23447,46 +23453,67 @@ components:
         reasoning effort can result in faster responses and fewer tokens used
         on reasoning in a response.
     ResponseFormatJsonObject:
-      allOf:
-        - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+      type: object
+      properties:
+        type:
+          type: string
+          description: "The type of response format being defined: `json_object`"
+          # enum:
+          #   - json_object
+          x-stainless-const: true
+      required:
+        - type
     ResponseFormatJsonSchema:
-      allOf:
-        - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-        - type: object
+      type: object
+      properties:
+        type:
+          type: string
+          description: "The type of response format being defined: `json_schema`"
+          # enum:
+          #   - json_schema
+          x-stainless-const: true
+        json_schema:
+          type: object
           properties:
-            json_schema:
-              type: object
-              properties:
-                description:
-                  type: string
-                  description: A description of what the response format is for, used by the model
-                    to determine how to respond in the format.
-                name:
-                  type: string
-                  description: The name of the response format. Must be a-z, A-Z, 0-9, or contain
-                    underscores and dashes, with a maximum length of 64.
-                schema:
-                  $ref: "#/components/schemas/ResponseFormatJsonSchemaSchema"
-                strict:
-                  type: boolean
-                  nullable: true
-                  default: false
-                  description: Whether to enable strict schema adherence when generating the
-                    output. If set to true, the model will always follow the exact
-                    schema defined in the `schema` field. Only a subset of JSON
-                    Schema is supported when `strict` is `true`. To learn more, read
-                    the [Structured Outputs guide](/docs/guides/structured-outputs).
-              required:
-                - name
+            description:
+              type: string
+              description: A description of what the response format is for, used by the model
+                to determine how to respond in the format.
+            name:
+              type: string
+              description: The name of the response format. Must be a-z, A-Z, 0-9, or contain
+                underscores and dashes, with a maximum length of 64.
+            schema:
+              $ref: "#/components/schemas/ResponseFormatJsonSchemaSchema"
+            strict:
+              type: boolean
+              nullable: true
+              default: false
+              description: Whether to enable strict schema adherence when generating the
+                output. If set to true, the model will always follow the exact
+                schema defined in the `schema` field. Only a subset of JSON
+                Schema is supported when `strict` is `true`. To learn more, read
+                the [Structured Outputs guide](/docs/guides/structured-outputs).
           required:
-            - json_schema
+            - name
+      required:
+        - type
+        - json_schema
     ResponseFormatJsonSchemaSchema:
       type: object
       description: The schema for the response format, described as a JSON Schema object.
       additionalProperties: true
     ResponseFormatText:
-      allOf:
-        - $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+      type: object
+      properties:
+        type:
+          type: string
+          description: "The type of response format being defined: `text`"
+          # enum:
+          #   - text
+          x-stainless-const: true
+      required:
+        - type
     RunCompletionUsage:
       type: object
       description: Usage statistics related to the run. This value will be `null` if
@@ -23674,13 +23701,13 @@ components:
           # nullable: true
         tool_choice:
           # allOf:
-          $ref: "#/components/schemas/AssistantsNamedToolChoice"
+          $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
           # nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
           # allOf:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
+          $ref: "#/components/schemas/ResponseFormatOption"
           # nullable: true
       required:
         - id
@@ -23816,15 +23843,6 @@ components:
             }
           }
     RunStepDeltaStepDetailsObject:
-      type: object
-      description: The details of the run step.
-      properties:
-        type:
-          type: string
-          enum:
-            - message_creation
-            - tool_calls
-          x-stainless-const: true
       oneOf:
         - $ref: "#/components/schemas/RunStepDeltaStepDetailsMessageCreationObject"
         - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsObject"
@@ -23833,61 +23851,67 @@ components:
         mapping:
           message_creation: "#/components/schemas/RunStepDeltaStepDetailsMessageCreationObject"
           tool_calls: "#/components/schemas/RunStepDeltaStepDetailsToolCallsObject"
-      required:
-        - type
     RunStepDeltaStepDetailsMessageCreationObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDeltaStepDetailsObject"
-        - type: object
-          title: Message creation
-          description: Details of the message creation by the run step.
-          properties:
-            message_creation:
-              type: object
-              properties:
-                message_id:
-                  type: string
-                  description: The ID of the message that was created by this run step.
-    RunStepDeltaStepDetailsToolCallsCodeObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsObjectItem"
-        - type: object
-          title: Code interpreter tool call
-          description: Details of the Code Interpreter tool call the run step was involved in.
-          properties:
-            index:
-              type: integer
-              description: The index of the tool call in the tool calls array.
-            id:
-              type: string
-              description: The ID of the tool call.
-            code_interpreter:
-              type: object
-              description: The Code Interpreter tool call definition.
-              properties:
-                input:
-                  type: string
-                  description: The input to the Code Interpreter tool call.
-                outputs:
-                  type: array
-                  description: The outputs from the Code Interpreter tool call. Code Interpreter
-                    can output one or more items, including text (`logs`) or images
-                    (`image`). Each of these are represented by a different object
-                    type.
-                  items:
-                    $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputObject"
-                    # x-oaiExpandable: true
-          required:
-            - index
-    RunStepDeltaStepDetailsToolCallsCodeOutputObject:
+      title: Message creation
       type: object
+      description: Details of the message creation by the run step.
       properties:
         type:
+          description: Always `message_creation`.
           type: string
-          enum:
-            - image
-            - logs
+          # enum:
+          #   - message_creation
           x-stainless-const: true
+        message_creation:
+          type: object
+          properties:
+            message_id:
+              type: string
+              description: The ID of the message that was created by this run step.
+      required:
+        - type
+    RunStepDeltaStepDetailsToolCallsCodeObject:
+      title: Code interpreter tool call
+      type: object
+      description: Details of the Code Interpreter tool call the run step was involved in.
+      properties:
+        index:
+          type: integer
+          description: The index of the tool call in the tool calls array.
+        id:
+          type: string
+          description: The ID of the tool call.
+        type:
+          type: string
+          description: The type of tool call. This is always going to be
+            `code_interpreter` for this type of tool call.
+          # enum:
+          #   - code_interpreter
+          x-stainless-const: true
+        code_interpreter:
+          type: object
+          description: The Code Interpreter tool call definition.
+          properties:
+            input:
+              type: string
+              description: The input to the Code Interpreter tool call.
+            outputs:
+              type: array
+              description: The outputs from the Code Interpreter tool call. Code Interpreter
+                can output one or more items, including text (`logs`) or images
+                (`image`). Each of these are represented by a different object
+                type.
+              items:
+                $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputObject"
+                # type: object
+                # oneOf:
+                #   - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputLogsObject"
+                #   - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputImageObject"
+                # x-oaiExpandable: true
+      required:
+        - index
+        - type
+    RunStepDeltaStepDetailsToolCallsCodeOutputObject:
       oneOf:
         - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputImageObject"
         - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputLogsObject"
@@ -23896,116 +23920,136 @@ components:
         mapping:
           image: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputImageObject"
           logs: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputLogsObject"
-      required:
-        - type
     RunStepDeltaStepDetailsToolCallsCodeOutputImageObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputObject"
-        - title: Code interpreter image output
-          type: object
-          properties:
-            index:
-              type: integer
-              description: The index of the output in the outputs array.
-            image:
-              type: object
-              properties:
-                file_id:
-                  description: The [file](/docs/api-reference/files) ID of the image.
-                  type: string
-          required:
-            - index
-    RunStepDeltaStepDetailsToolCallsCodeOutputLogsObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputObject"
-        - type: object
-          title: Code interpreter log output
-          description: Text output from the Code Interpreter tool call as part of a run step.
-          properties:
-            index:
-              type: integer
-              description: The index of the output in the outputs array.
-            logs:
-              type: string
-              description: The text output from the Code Interpreter tool call.
-          required:
-            - index
-    RunStepDeltaStepDetailsToolCallsFileSearchObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsObjectItem"
-        - type: object
-          title: File search tool call
-          description: Details of the file search tool call the run step was involved in.
-          properties:
-            index:
-              type: integer
-              description: The index of the tool call in the tool calls array.
-            id:
-              type: string
-              description: The ID of the tool call.
-            file_search:
-              type: object
-              description: For now, this is always going to be an empty object.
-              x-oaiTypeLabel: map
-          required:
-            - index
-            - file_search
-    RunStepDeltaStepDetailsToolCallsFunctionObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsObjectItem"
-        - type: object
-          title: Function tool call
-          properties:
-            index:
-              type: integer
-              description: The index of the tool call in the tool calls array.
-            id:
-              type: string
-              description: The ID of the tool call object.
-            function:
-              type: object
-              description: The definition of the function that was called.
-              properties:
-                name:
-                  type: string
-                  description: The name of the function.
-                arguments:
-                  type: string
-                  description: The arguments passed to the function.
-                output:
-                  type: string
-                  description: The output of the function. This will be `null` if the outputs have
-                    not been [submitted](/docs/api-reference/runs/submitToolOutputs)
-                    yet.
-                  nullable: true
-          required:
-            - index
-    RunStepDeltaStepDetailsToolCallsObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDeltaStepDetailsObject"
-        - type: object
-          title: Tool calls
-          description: Details of the tool call.
-          properties:
-            tool_calls:
-              type: array
-              description: >
-                An array of tool calls the run step was involved in. These can be
-                associated with one of three types of tools: `code_interpreter`,
-                `file_search`, or `function`.
-              items:
-                $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsObjectItem"
-                # x-oaiExpandable: true
-    RunStepDeltaStepDetailsToolCallsObjectItem:
+      title: Code interpreter image output
       type: object
       properties:
+        index:
+          type: integer
+          description: The index of the output in the outputs array.
+        type:
+          description: Always `image`.
+          type: string
+          # enum:
+          #   - image
+          x-stainless-const: true
+        image:
+          type: object
+          properties:
+            file_id:
+              description: The [file](/docs/api-reference/files) ID of the image.
+              type: string
+      required:
+        - index
+        - type
+    RunStepDeltaStepDetailsToolCallsCodeOutputLogsObject:
+      title: Code interpreter log output
+      type: object
+      description: Text output from the Code Interpreter tool call as part of a run step.
+      properties:
+        index:
+          type: integer
+          description: The index of the output in the outputs array.
+        type:
+          description: Always `logs`.
+          type: string
+          # enum:
+          #   - logs
+          x-stainless-const: true
+        logs:
+          type: string
+          description: The text output from the Code Interpreter tool call.
+      required:
+        - index
+        - type
+    RunStepDeltaStepDetailsToolCallsFileSearchObject:
+      title: File search tool call
+      type: object
+      properties:
+        index:
+          type: integer
+          description: The index of the tool call in the tool calls array.
+        id:
+          type: string
+          description: The ID of the tool call object.
         type:
           type: string
-          enum:
-            - code_interpreter
-            - file_search
-            - function
+          description: The type of tool call. This is always going to be `file_search` for
+            this type of tool call.
+          # enum:
+          #   - file_search
           x-stainless-const: true
+        file_search:
+          type: object
+          description: For now, this is always going to be an empty object.
+          x-oaiTypeLabel: map
+      required:
+        - index
+        - type
+        - file_search
+    RunStepDeltaStepDetailsToolCallsFunctionObject:
+      type: object
+      title: Function tool call
+      properties:
+        index:
+          type: integer
+          description: The index of the tool call in the tool calls array.
+        id:
+          type: string
+          description: The ID of the tool call object.
+        type:
+          type: string
+          description: The type of tool call. This is always going to be `function` for
+            this type of tool call.
+          # enum:
+          #   - function
+          x-stainless-const: true
+        function:
+          type: object
+          description: The definition of the function that was called.
+          properties:
+            name:
+              type: string
+              description: The name of the function.
+            arguments:
+              type: string
+              description: The arguments passed to the function.
+            output:
+              type: string
+              description: The output of the function. This will be `null` if the outputs have
+                not been [submitted](/docs/api-reference/runs/submitToolOutputs)
+                yet.
+              nullable: true
+      required:
+        - index
+        - type
+    RunStepDeltaStepDetailsToolCallsObject:
+      title: Tool calls
+      type: object
+      description: Details of the tool call.
+      properties:
+        type:
+          description: Always `tool_calls`.
+          type: string
+          # enum:
+          #   - tool_calls
+          x-stainless-const: true
+        tool_calls:
+          type: array
+          description: >
+            An array of tool calls the run step was involved in. These can be
+            associated with one of three types of tools: `code_interpreter`,
+            `file_search`, or `function`.
+          items:
+            $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsObjectItem"
+            # oneOf:
+            #   - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeObject"
+            #   - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFileSearchObject"
+            #   - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFunctionObject"
+            # x-oaiExpandable: true
+      required:
+        - type
+    RunStepDeltaStepDetailsToolCallsObjectItem:
       oneOf:
         - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeObject"
         - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFileSearchObject"
@@ -24016,70 +24060,72 @@ components:
           code_interpreter: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeObject"
           file_search: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFileSearchObject"
           function: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFunctionObject"
-      required:
-        - type
     RunStepDetailsMessageCreationObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDetailsObject"
-        - type: object
-          title: Message creation
-          description: Details of the message creation by the run step.
-          properties:
-            message_creation:
-              type: object
-              properties:
-                message_id:
-                  type: string
-                  description: The ID of the message that was created by this run step.
-              required:
-                - message_id
-          required:
-            - message_creation
-    RunStepDetailsToolCallsCodeObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDetailsToolCallsObjectItem"
-        - type: object
-          title: Code Interpreter tool call
-          description: Details of the Code Interpreter tool call the run step was involved in.
-          properties:
-            id:
-              type: string
-              description: The ID of the tool call.
-            code_interpreter:
-              type: object
-              description: The Code Interpreter tool call definition.
-              required:
-                - input
-                - outputs
-              properties:
-                input:
-                  type: string
-                  description: The input to the Code Interpreter tool call.
-                outputs:
-                  type: array
-                  description: The outputs from the Code Interpreter tool call. Code Interpreter
-                    can output one or more items, including text (`logs`) or images
-                    (`image`). Each of these are represented by a different object
-                    type.
-                  items:
-                    $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputObject"
-                    # type: object
-                    # oneOf:
-                    #   - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputLogsObject"
-                    #   - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputImageObject"
-                    # x-oaiExpandable: true
-          required:
-            - id
-            - code_interpreter
-    RunStepDetailsToolCallsCodeOutputObject:
+      title: Message creation
       type: object
+      description: Details of the message creation by the run step.
       properties:
         type:
+          description: Always `message_creation`.
           type: string
-          enum:
-            - image
-            - logs
+          # enum:
+          #   - message_creation
           x-stainless-const: true
+        message_creation:
+          type: object
+          properties:
+            message_id:
+              type: string
+              description: The ID of the message that was created by this run step.
+          required:
+            - message_id
+      required:
+        - type
+        - message_creation
+    RunStepDetailsToolCallsCodeObject:
+      title: Code Interpreter tool call
+      type: object
+      description: Details of the Code Interpreter tool call the run step was involved in.
+      properties:
+        id:
+          type: string
+          description: The ID of the tool call.
+        type:
+          type: string
+          description: The type of tool call. This is always going to be
+            `code_interpreter` for this type of tool call.
+          # enum:
+          #   - code_interpreter
+          x-stainless-const: true
+        code_interpreter:
+          type: object
+          description: The Code Interpreter tool call definition.
+          required:
+            - input
+            - outputs
+          properties:
+            input:
+              type: string
+              description: The input to the Code Interpreter tool call.
+            outputs:
+              type: array
+              description: The outputs from the Code Interpreter tool call. Code Interpreter
+                can output one or more items, including text (`logs`) or images
+                (`image`). Each of these are represented by a different object
+                type.
+              items:
+                $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputObject"
+                # type: object
+                # oneOf:
+                #   - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputLogsObject"
+                #   - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputImageObject"
+                # x-oaiExpandable: true
+      required:
+        - id
+        - type
+        - code_interpreter
+
+    RunStepDetailsToolCallsCodeOutputObject:
       oneOf:
         - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputImageObject"
         - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputLogsObject"
@@ -24088,60 +24134,75 @@ components:
         mapping:
           image: "#/components/schemas/RunStepDetailsToolCallsCodeOutputImageObject"
           logs: "#/components/schemas/RunStepDetailsToolCallsCodeOutputLogsObject"
+    RunStepDetailsToolCallsCodeOutputImageObject:
+      title: Code Interpreter image output
+      type: object
+      properties:
+        type:
+          description: Always `image`.
+          type: string
+          # enum:
+          #   - image
+          x-stainless-const: true
+        image:
+          type: object
+          properties:
+            file_id:
+              description: The [file](/docs/api-reference/files) ID of the image.
+              type: string
+          required:
+            - file_id
       required:
         - type
-    RunStepDetailsToolCallsCodeOutputImageObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputObject"
-        - type: object
-          title: Code Interpreter image output
-          properties:
-            image:
-              type: object
-              properties:
-                file_id:
-                  description: The [file](/docs/api-reference/files) ID of the image.
-                  type: string
-              required:
-                - file_id
-          required:
-            - image
+        - image
     RunStepDetailsToolCallsCodeOutputLogsObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputObject"
-        - type: object
-          title: Code Interpreter log output
-          description: Text output from the Code Interpreter tool call as part of a run step.
-          properties:
-            logs:
-              type: string
-              description: The text output from the Code Interpreter tool call.
-          required:
-            - logs
+      title: Code Interpreter log output
+      type: object
+      description: Text output from the Code Interpreter tool call as part of a run step.
+      properties:
+        type:
+          description: Always `logs`.
+          type: string
+          # enum:
+          #   - logs
+          x-stainless-const: true
+        logs:
+          type: string
+          description: The text output from the Code Interpreter tool call.
+      required:
+        - type
+        - logs
     RunStepDetailsToolCallsFileSearchObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDetailsToolCallsObjectItem"
-        - type: object
-          title: File search tool call
+      title: File search tool call
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the tool call object.
+        type:
+          type: string
+          description: The type of tool call. This is always going to be `file_search` for
+            this type of tool call.
+          # enum:
+          #   - file_search
+          x-stainless-const: true
+        file_search:
+          type: object
+          description: For now, this is always going to be an empty object.
+          x-oaiTypeLabel: map
           properties:
-            id:
-              type: string
-              description: The ID of the tool call object.
-            file_search:
-              type: object
-              description: For now, this is always going to be an empty object.
-              x-oaiTypeLabel: map
-              properties:
-                ranking_options:
-                  $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchRankingOptionsObject"
-                results:
-                  type: array
-                  description: The results of the file search.
-                  items:
-                    $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchResultObject"
-          required:
-            - id
-            - file_search
+            ranking_options:
+              $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchRankingOptionsObje\
+                ct"
+            results:
+              type: array
+              description: The results of the file search.
+              items:
+                $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchResultObject"
+      required:
+        - id
+        - type
+        - file_search
     RunStepDetailsToolCallsFileSearchRankingOptionsObject:
       title: File search tool call ranking options
       type: object
@@ -24201,71 +24262,72 @@ components:
         - file_name
         - score
     RunStepDetailsToolCallsFunctionObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDetailsToolCallsObjectItem"
-        - type: object
-          title: Function tool call
-          properties:
-            id:
-              type: string
-              description: The ID of the tool call object.
-            function:
-              type: object
-              description: The definition of the function that was called.
-              properties:
-                name:
-                  type: string
-                  description: The name of the function.
-                arguments:
-                  type: string
-                  description: The arguments passed to the function.
-                output:
-                  type: string
-                  description: The output of the function. This will be `null` if the outputs have
-                    not been [submitted](/docs/api-reference/runs/submitToolOutputs)
-                    yet.
-                  nullable: true
-              required:
-                - name
-                - arguments
-                - output
-          required:
-            - id
-            - function
-    RunStepDetailsToolCallsObject:
-      allOf:
-        - $ref: "#/components/schemas/RunStepDetailsObject"
-        - type: object
-          title: Tool calls
-          description: Details of the tool call.
-          properties:
-            tool_calls:
-              type: array
-              description: >
-                An array of tool calls the run step was involved in. These can be
-                associated with one of three types of tools: `code_interpreter`,
-                `file_search`, or `function`.
-              items:
-                # oneOf:
-                #   - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeObject"
-                #   - $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchObject"
-                #   - $ref: "#/components/schemas/RunStepDetailsToolCallsFunctionObject"
-                # x-oaiExpandable: true
-                $ref: "#/components/schemas/RunStepDetailsToolCallsObjectItem"
-          required:
-            - tool_calls
-    RunStepDetailsToolCallsObjectItem:
       type: object
+      title: Function tool call
       properties:
+        id:
+          type: string
+          description: The ID of the tool call object.
         type:
           type: string
-          description: The type of tool call. This can be one of `code_interpreter`,
-            `file_search`, or `function`.
-          enum:
-            - code_interpreter
-            - file_search
-            - function
+          description: The type of tool call. This is always going to be `function` for
+            this type of tool call.
+          # enum:
+          #   - function
           x-stainless-const: true
+        function:
+          type: object
+          description: The definition of the function that was called.
+          properties:
+            name:
+              type: string
+              description: The name of the function.
+            arguments:
+              type: string
+              description: The arguments passed to the function.
+            output:
+              type: string
+              description: The output of the function. This will be `null` if the outputs have
+                not been [submitted](/docs/api-reference/runs/submitToolOutputs)
+                yet.
+              nullable: true
+          required:
+            - name
+            - arguments
+            - output
+      required:
+        - id
+        - type
+        - function
+    RunStepDetailsToolCallsObject:
+      title: Tool calls
+      type: object
+      description: Details of the tool call.
+      properties:
+        type:
+          description: Always `tool_calls`.
+          type: string
+          # enum:
+          #   - tool_calls
+          x-stainless-const: true
+        tool_calls:
+          type: array
+          description: >
+            An array of tool calls the run step was involved in. These can be
+            associated with one of three types of tools: `code_interpreter`,
+            `file_search`, or `function`.
+          items:
+            $ref: "#/components/schemas/RunStepDetailsToolCallsObjectItem"
+
+            # oneOf:
+            #   - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeObject"
+            #   - $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchObject"
+            #   - $ref: "#/components/schemas/RunStepDetailsToolCallsFunctionObject"
+            # x-oaiExpandable: true
+      required:
+        - type
+        - tool_calls
+    RunStepDetailsToolCallsObjectItem:
       oneOf:
         - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeObject"
         - $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchObject"
@@ -24276,8 +24338,6 @@ components:
           code_interpreter: "#/components/schemas/RunStepDetailsToolCallsCodeObject"
           file_search: "#/components/schemas/RunStepDetailsToolCallsFileSearchObject"
           function: "#/components/schemas/RunStepDetailsToolCallsFunctionObject"
-      required:
-        - type
     RunStepObject:
       type: object
       title: Run steps
@@ -24326,13 +24386,13 @@ components:
             - completed
             - expired
         step_details:
+          $ref: "#/components/schemas/RunStepDetailsObject"
           # type: object
           # description: The details of the run step.
           # oneOf:
           #   - $ref: "#/components/schemas/RunStepDetailsMessageCreationObject"
           #   - $ref: "#/components/schemas/RunStepDetailsToolCallsObject"
           # x-oaiExpandable: true
-          $ref: "#/components/schemas/RunStepDetailsObject"
         last_error:
           type: object
           description: The last error associated with this run step. Will be `null` if
@@ -24420,14 +24480,6 @@ components:
             }
           }
     RunStepDetailsObject:
-      type: object
-      properties:
-        type:
-          type: string
-          enum:
-            - message_creation
-            - tool_calls
-          x-stainless-const: true
       oneOf:
         - $ref: "#/components/schemas/RunStepDetailsMessageCreationObject"
         - $ref: "#/components/schemas/RunStepDetailsToolCallsObject"
@@ -24436,8 +24488,6 @@ components:
         mapping:
           message_creation: "#/components/schemas/RunStepDetailsMessageCreationObject"
           tool_calls: "#/components/schemas/RunStepDetailsToolCallsObject"
-      required:
-        - type
     RunStepStreamEvent:
       oneOf:
         - type: object
@@ -24783,16 +24833,21 @@ components:
         - type
         - static
     StaticChunkingStrategyResponseParam:
+      type: object
       title: Static Chunking Strategy
-      allOf:
-        - $ref: "#/components/schemas/ChunkingStrategyResponseParam"
-        - type: object
-          additionalProperties: false
-          properties:
-            static:
-              $ref: "#/components/schemas/StaticChunkingStrategy"
-          required:
-            - static
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          description: Always `static`.
+          # enum:
+          #   - static
+          x-stainless-const: true
+        static:
+          $ref: "#/components/schemas/StaticChunkingStrategy"
+      required:
+        - type
+        - static
     SubmitToolOutputsRunRequest:
       type: object
       additionalProperties: false
@@ -25017,9 +25072,9 @@ components:
           type: string
           nullable: true
         expires_after:
-#          allOf:
+        #  allOf:
           $ref: "#/components/schemas/VectorStoreExpirationAfter"
-#            - nullable: true
+          #  - nullable: true
         metadata:
           $ref: "#/components/schemas/Metadata"
     Upload:
@@ -25064,10 +25119,10 @@ components:
             - upload
           x-stainless-const: true
         file:
-#          allOf:
+          # allOf:
           $ref: "#/components/schemas/OpenAIFile"
-#            - nullable: true
-#          description: The ready File object after the Upload is completed.
+            # - nullable: true
+            #   description: The ready File object after the Upload is completed.
       required:
         - bytes
         - created_at
@@ -25140,8 +25195,8 @@ components:
       properties:
         object:
           type: string
-          enum:
-            - organization.usage.audio_speeches.result
+          # enum:
+          #   - organization.usage.audio_speeches.result
           x-stainless-const: true
         characters:
           type: integer
@@ -25186,41 +25241,45 @@ components:
               "model": "tts-1"
           }
     UsageAudioTranscriptionsResult:
+      type: object
       description: The aggregated audio transcriptions usage details of the specific
         time bucket.
-      allOf:
-        - $ref: "#/components/schemas/UsageResult"
-        - type: object
-          properties:
-            seconds:
-              type: integer
-              description: The number of seconds processed.
-            num_model_requests:
-              type: integer
-              description: The count of requests made to the model.
-            project_id:
-              type: string
-              nullable: true
-              description: When `group_by=project_id`, this field provides the project ID of
-                the grouped usage result.
-            user_id:
-              type: string
-              nullable: true
-              description: When `group_by=user_id`, this field provides the user ID of the
-                grouped usage result.
-            api_key_id:
-              type: string
-              nullable: true
-              description: When `group_by=api_key_id`, this field provides the API key ID of
-                the grouped usage result.
-            model:
-              type: string
-              nullable: true
-              description: When `group_by=model`, this field provides the model name of the
-                grouped usage result.
-          required:
-            - seconds
-            - num_model_requests
+      properties:
+        object:
+          type: string
+          # enum:
+          #   - organization.usage.audio_transcriptions.result
+          x-stainless-const: true
+        seconds:
+          type: integer
+          description: The number of seconds processed.
+        num_model_requests:
+          type: integer
+          description: The count of requests made to the model.
+        project_id:
+          type: string
+          nullable: true
+          description: When `group_by=project_id`, this field provides the project ID of
+            the grouped usage result.
+        user_id:
+          type: string
+          nullable: true
+          description: When `group_by=user_id`, this field provides the user ID of the
+            grouped usage result.
+        api_key_id:
+          type: string
+          nullable: true
+          description: When `group_by=api_key_id`, this field provides the API key ID of
+            the grouped usage result.
+        model:
+          type: string
+          nullable: true
+          description: When `group_by=model`, this field provides the model name of the
+            grouped usage result.
+      required:
+        - object
+        - seconds
+        - num_model_requests
       x-oaiMeta:
         name: Audio transcriptions usage object
         example: |
@@ -25234,22 +25293,26 @@ components:
               "model": "tts-1"
           }
     UsageCodeInterpreterSessionsResult:
+      type: object
       description: The aggregated code interpreter sessions usage details of the
         specific time bucket.
-      allOf:
-        - $ref: "#/components/schemas/UsageResult"
-        - type: object
-          properties:
-            num_sessions:
-              type: integer
-              description: The number of code interpreter sessions.
-            project_id:
-              type: string
-              nullable: true
-              description: When `group_by=project_id`, this field provides the project ID of
-                the grouped usage result.
-          required:
-            - sessions
+      properties:
+        object:
+          type: string
+          # enum:
+          #   - organization.usage.code_interpreter_sessions.result
+          x-stainless-const: true
+        num_sessions:
+          type: integer
+          description: The number of code interpreter sessions.
+        project_id:
+          type: string
+          nullable: true
+          description: When `group_by=project_id`, this field provides the project ID of
+            the grouped usage result.
+      required:
+        - object
+        - sessions
       x-oaiMeta:
         name: Code interpreter sessions usage object
         example: |
@@ -25259,64 +25322,68 @@ components:
               "project_id": "proj_abc"
           }
     UsageCompletionsResult:
+      type: object
       description: The aggregated completions usage details of the specific time bucket.
-      allOf:
-        - $ref: "#/components/schemas/UsageResult"
-        - type: object
-          properties:
-            input_tokens:
-              type: integer
-              description: The aggregated number of text input tokens used, including cached
-                tokens. For customers subscribe to scale tier, this includes scale
-                tier tokens.
-            input_cached_tokens:
-              type: integer
-              description: The aggregated number of text input tokens that has been cached
-                from previous requests. For customers subscribe to scale tier, this
-                includes scale tier tokens.
-            output_tokens:
-              type: integer
-              description: The aggregated number of text output tokens used. For customers
-                subscribe to scale tier, this includes scale tier tokens.
-            input_audio_tokens:
-              type: integer
-              description: The aggregated number of audio input tokens used, including cached
-                tokens.
-            output_audio_tokens:
-              type: integer
-              description: The aggregated number of audio output tokens used.
-            num_model_requests:
-              type: integer
-              description: The count of requests made to the model.
-            project_id:
-              type: string
-              nullable: true
-              description: When `group_by=project_id`, this field provides the project ID of
-                the grouped usage result.
-            user_id:
-              type: string
-              nullable: true
-              description: When `group_by=user_id`, this field provides the user ID of the
-                grouped usage result.
-            api_key_id:
-              type: string
-              nullable: true
-              description: When `group_by=api_key_id`, this field provides the API key ID of
-                the grouped usage result.
-            model:
-              type: string
-              nullable: true
-              description: When `group_by=model`, this field provides the model name of the
-                grouped usage result.
-            batch:
-              type: boolean
-              nullable: true
-              description: When `group_by=batch`, this field tells whether the grouped usage
-                result is batch or not.
-          required:
-            - input_tokens
-            - output_tokens
-            - num_model_requests
+      properties:
+        object:
+          type: string
+          # enum:
+          #   - organization.usage.completions.result
+          x-stainless-const: true
+        input_tokens:
+          type: integer
+          description: The aggregated number of text input tokens used, including cached
+            tokens. For customers subscribe to scale tier, this includes scale
+            tier tokens.
+        input_cached_tokens:
+          type: integer
+          description: The aggregated number of text input tokens that has been cached
+            from previous requests. For customers subscribe to scale tier, this
+            includes scale tier tokens.
+        output_tokens:
+          type: integer
+          description: The aggregated number of text output tokens used. For customers
+            subscribe to scale tier, this includes scale tier tokens.
+        input_audio_tokens:
+          type: integer
+          description: The aggregated number of audio input tokens used, including cached
+            tokens.
+        output_audio_tokens:
+          type: integer
+          description: The aggregated number of audio output tokens used.
+        num_model_requests:
+          type: integer
+          description: The count of requests made to the model.
+        project_id:
+          type: string
+          nullable: true
+          description: When `group_by=project_id`, this field provides the project ID of
+            the grouped usage result.
+        user_id:
+          type: string
+          nullable: true
+          description: When `group_by=user_id`, this field provides the user ID of the
+            grouped usage result.
+        api_key_id:
+          type: string
+          nullable: true
+          description: When `group_by=api_key_id`, this field provides the API key ID of
+            the grouped usage result.
+        model:
+          type: string
+          nullable: true
+          description: When `group_by=model`, this field provides the model name of the
+            grouped usage result.
+        batch:
+          type: boolean
+          nullable: true
+          description: When `group_by=batch`, this field tells whether the grouped usage
+            result is batch or not.
+      required:
+        - object
+        - input_tokens
+        - output_tokens
+        - num_model_requests
       x-oaiMeta:
         name: Completions usage object
         example: |
@@ -25335,40 +25402,44 @@ components:
               "batch": false
           }
     UsageEmbeddingsResult:
+      type: object
       description: The aggregated embeddings usage details of the specific time bucket.
-      allOf:
-        - $ref: "#/components/schemas/UsageResult"
-        - type: object
-          properties:
-            input_tokens:
-              type: integer
-              description: The aggregated number of input tokens used.
-            num_model_requests:
-              type: integer
-              description: The count of requests made to the model.
-            project_id:
-              type: string
-              nullable: true
-              description: When `group_by=project_id`, this field provides the project ID of
-                the grouped usage result.
-            user_id:
-              type: string
-              nullable: true
-              description: When `group_by=user_id`, this field provides the user ID of the
-                grouped usage result.
-            api_key_id:
-              type: string
-              nullable: true
-              description: When `group_by=api_key_id`, this field provides the API key ID of
-                the grouped usage result.
-            model:
-              type: string
-              nullable: true
-              description: When `group_by=model`, this field provides the model name of the
-                grouped usage result.
-          required:
-            - input_tokens
-            - num_model_requests
+      properties:
+        object:
+          type: string
+          # enum:
+          #   - organization.usage.embeddings.result
+          x-stainless-const: true
+        input_tokens:
+          type: integer
+          description: The aggregated number of input tokens used.
+        num_model_requests:
+          type: integer
+          description: The count of requests made to the model.
+        project_id:
+          type: string
+          nullable: true
+          description: When `group_by=project_id`, this field provides the project ID of
+            the grouped usage result.
+        user_id:
+          type: string
+          nullable: true
+          description: When `group_by=user_id`, this field provides the user ID of the
+            grouped usage result.
+        api_key_id:
+          type: string
+          nullable: true
+          description: When `group_by=api_key_id`, this field provides the API key ID of
+            the grouped usage result.
+        model:
+          type: string
+          nullable: true
+          description: When `group_by=model`, this field provides the model name of the
+            grouped usage result.
+      required:
+        - object
+        - input_tokens
+        - num_model_requests
       x-oaiMeta:
         name: Embeddings usage object
         example: |
@@ -25382,51 +25453,55 @@ components:
               "model": "text-embedding-ada-002-v2"
           }
     UsageImagesResult:
+      type: object
       description: The aggregated images usage details of the specific time bucket.
-      allOf:
-        - $ref: "#/components/schemas/UsageResult"
-        - type: object
-          properties:
-            images:
-              type: integer
-              description: The number of images processed.
-            num_model_requests:
-              type: integer
-              description: The count of requests made to the model.
-            source:
-              type: string
-              nullable: true
-              description: When `group_by=source`, this field provides the source of the
-                grouped usage result, possible values are `image.generation`,
-                `image.edit`, `image.variation`.
-            size:
-              type: string
-              nullable: true
-              description: When `group_by=size`, this field provides the image size of the
-                grouped usage result.
-            project_id:
-              type: string
-              nullable: true
-              description: When `group_by=project_id`, this field provides the project ID of
-                the grouped usage result.
-            user_id:
-              type: string
-              nullable: true
-              description: When `group_by=user_id`, this field provides the user ID of the
-                grouped usage result.
-            api_key_id:
-              type: string
-              nullable: true
-              description: When `group_by=api_key_id`, this field provides the API key ID of
-                the grouped usage result.
-            model:
-              type: string
-              nullable: true
-              description: When `group_by=model`, this field provides the model name of the
-                grouped usage result.
-          required:
-            - images
-            - num_model_requests
+      properties:
+        object:
+          type: string
+          # enum:
+          #   - organization.usage.images.result
+          x-stainless-const: true
+        images:
+          type: integer
+          description: The number of images processed.
+        num_model_requests:
+          type: integer
+          description: The count of requests made to the model.
+        source:
+          type: string
+          nullable: true
+          description: When `group_by=source`, this field provides the source of the
+            grouped usage result, possible values are `image.generation`,
+            `image.edit`, `image.variation`.
+        size:
+          type: string
+          nullable: true
+          description: When `group_by=size`, this field provides the image size of the
+            grouped usage result.
+        project_id:
+          type: string
+          nullable: true
+          description: When `group_by=project_id`, this field provides the project ID of
+            the grouped usage result.
+        user_id:
+          type: string
+          nullable: true
+          description: When `group_by=user_id`, this field provides the user ID of the
+            grouped usage result.
+        api_key_id:
+          type: string
+          nullable: true
+          description: When `group_by=api_key_id`, this field provides the API key ID of
+            the grouped usage result.
+        model:
+          type: string
+          nullable: true
+          description: When `group_by=model`, this field provides the model name of the
+            grouped usage result.
+      required:
+        - object
+        - images
+        - num_model_requests
       x-oaiMeta:
         name: Images usage object
         example: |
@@ -25442,40 +25517,44 @@ components:
               "model": "dall-e-3"
           }
     UsageModerationsResult:
+      type: object
       description: The aggregated moderations usage details of the specific time bucket.
-      allOf:
-        - $ref: "#/components/schemas/UsageResult"
-        - type: object
-          properties:
-            input_tokens:
-              type: integer
-              description: The aggregated number of input tokens used.
-            num_model_requests:
-              type: integer
-              description: The count of requests made to the model.
-            project_id:
-              type: string
-              nullable: true
-              description: When `group_by=project_id`, this field provides the project ID of
-                the grouped usage result.
-            user_id:
-              type: string
-              nullable: true
-              description: When `group_by=user_id`, this field provides the user ID of the
-                grouped usage result.
-            api_key_id:
-              type: string
-              nullable: true
-              description: When `group_by=api_key_id`, this field provides the API key ID of
-                the grouped usage result.
-            model:
-              type: string
-              nullable: true
-              description: When `group_by=model`, this field provides the model name of the
-                grouped usage result.
-          required:
-            - input_tokens
-            - num_model_requests
+      properties:
+        object:
+          type: string
+          # enum:
+          #   - organization.usage.moderations.result
+          x-stainless-const: true
+        input_tokens:
+          type: integer
+          description: The aggregated number of input tokens used.
+        num_model_requests:
+          type: integer
+          description: The count of requests made to the model.
+        project_id:
+          type: string
+          nullable: true
+          description: When `group_by=project_id`, this field provides the project ID of
+            the grouped usage result.
+        user_id:
+          type: string
+          nullable: true
+          description: When `group_by=user_id`, this field provides the user ID of the
+            grouped usage result.
+        api_key_id:
+          type: string
+          nullable: true
+          description: When `group_by=api_key_id`, this field provides the API key ID of
+            the grouped usage result.
+        model:
+          type: string
+          nullable: true
+          description: When `group_by=model`, this field provides the model name of the
+            grouped usage result.
+      required:
+        - object
+        - input_tokens
+        - num_model_requests
       x-oaiMeta:
         name: Moderations usage object
         example: |
@@ -25524,6 +25603,7 @@ components:
         result:
           type: array
           items:
+            $ref: "#/components/schemas/UsageResult"
             # oneOf:
             #   - $ref: "#/components/schemas/UsageCompletionsResult"
             #   - $ref: "#/components/schemas/UsageEmbeddingsResult"
@@ -25534,28 +25614,12 @@ components:
             #   - $ref: "#/components/schemas/UsageVectorStoresResult"
             #   - $ref: "#/components/schemas/UsageCodeInterpreterSessionsResult"
             #   - $ref: "#/components/schemas/CostsResult"
-            $ref: "#/components/schemas/UsageResult"
       required:
         - object
         - start_time
         - end_time
         - result
     UsageResult:
-      type: object
-      properties:
-        object:
-          type: string
-          enum:
-            - organization.usage.completions.result
-            - organization.usage.embeddings.result
-            - organization.usage.moderations.result
-            - organization.usage.images.result
-            - organization.usage.audio_speeches.result
-            - organization.usage.audio_transcriptions.result
-            - organization.usage.vector_stores.result
-            - organization.usage.code_interpreter_sessions.result
-            - organization.costs.result
-          x-stainless-const: true
       oneOf:
         - $ref: "#/components/schemas/UsageCompletionsResult"
         - $ref: "#/components/schemas/UsageEmbeddingsResult"
@@ -25578,24 +25642,26 @@ components:
           organization.usage.vector_stores.result: "#/components/schemas/UsageVectorStoresResult"
           organization.usage.code_interpreter_sessions.result: "#/components/schemas/UsageCodeInterpreterSessionsResult"
           organization.costs.result: "#/components/schemas/CostsResult"
+    UsageVectorStoresResult:
+      type: object
+      description: The aggregated vector stores usage details of the specific time bucket.
+      properties:
+        object:
+          type: string
+          # enum:
+          #   - organization.usage.vector_stores.result
+          x-stainless-const: true
+        usage_bytes:
+          type: integer
+          description: The vector stores usage in bytes.
+        project_id:
+          type: string
+          nullable: true
+          description: When `group_by=project_id`, this field provides the project ID of
+            the grouped usage result.
       required:
         - object
-    UsageVectorStoresResult:
-      description: The aggregated vector stores usage details of the specific time bucket.
-      allOf:
-        - $ref: "#/components/schemas/UsageResult"
-        - type: object
-          properties:
-            usage_bytes:
-              type: integer
-              description: The vector stores usage in bytes.
-            project_id:
-              type: string
-              nullable: true
-              description: When `group_by=project_id`, this field provides the project ID of
-                the grouped usage result.
-          required:
-            - usage_bytes
+        - usage_bytes
       x-oaiMeta:
         name: Vector stores usage object
         example: |
@@ -25895,17 +25961,8 @@ components:
               }
             }
           }
+    
     ChunkingStrategyResponseParam:
-      type: object
-      description: The strategy used to chunk the file.
-      properties:
-        type:
-          type: string
-          description: The type of chunking strategy.
-          enum:
-            - static
-            - other
-          x-stainless-const: true
       oneOf:
         - $ref: "#/components/schemas/StaticChunkingStrategyResponseParam"
         - $ref: "#/components/schemas/OtherChunkingStrategyResponseParam"
@@ -25914,8 +25971,6 @@ components:
         mapping:
           static: "#/components/schemas/StaticChunkingStrategyResponseParam"
           other: "#/components/schemas/OtherChunkingStrategyResponseParam"
-      required:
-        - type
     VectorStoreObject:
       type: object
       title: Vector store
