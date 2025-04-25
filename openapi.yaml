@@ -11615,11 +11615,7 @@ components:
           type: array
           maxItems: 128
           items:
-            oneOf:
-              - $ref: "#/components/schemas/AssistantToolsCode"
-              - $ref: "#/components/schemas/AssistantToolsFileSearch"
-              - $ref: "#/components/schemas/AssistantToolsFunction"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/AssistantTool"
         tool_resources:
           type: object
           description: >
@@ -11685,8 +11681,8 @@ components:
             We generally recommend altering this or temperature but not both.
         response_format:
           # allOf:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-          nullable: true
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # nullable: true
       required:
         - id
         - object
@@ -11803,6 +11799,28 @@ components:
         - gpt-3.5-turbo-1106
         - gpt-3.5-turbo-0125
         - gpt-3.5-turbo-16k-0613
+    AssistantTool:
+      oneOf:
+        - $ref: "#/components/schemas/AssistantToolsCode"
+        - $ref: "#/components/schemas/AssistantToolsFileSearch"
+        - $ref: "#/components/schemas/AssistantToolsFunction"
+      discriminator:
+        propertyName: type
+        mapping:
+          code_interpreter: "#/components/schemas/AssistantToolsCode"
+          file_search: "#/components/schemas/AssistantToolsFileSearch"
+          function: "#/components/schemas/AssistantToolsFunction"
+      x-oaiExpandable: true
+    AssistantToolOrTypeOnly:
+      oneOf:
+        - $ref: "#/components/schemas/AssistantToolsCode"
+        - $ref: "#/components/schemas/AssistantToolsFileSearchTypeOnly"
+      discriminator:
+        propertyName: type
+        mapping:
+          code_interpreter: "#/components/schemas/AssistantToolsCode"
+          file_search: "#/components/schemas/AssistantToolsFileSearchTypeOnly"
+      x-oaiExpandable: true
     AssistantToolsCode:
       type: object
       title: Code interpreter tool
@@ -11810,8 +11828,8 @@ components:
         type:
           type: string
           description: "The type of tool being defined: `code_interpreter`"
-          enum:
-            - code_interpreter
+          # enum:
+          #   - code_interpreter
           x-stainless-const: true
       required:
         - type
@@ -11822,8 +11840,8 @@ components:
         type:
           type: string
           description: "The type of tool being defined: `file_search`"
-          enum:
-            - file_search
+          # enum:
+          #   - file_search
           x-stainless-const: true
         file_search:
           type: object
@@ -11855,8 +11873,8 @@ components:
         type:
           type: string
           description: "The type of tool being defined: `file_search`"
-          enum:
-            - file_search
+          # enum:
+          #   - file_search
           x-stainless-const: true
       required:
         - type
@@ -11867,15 +11885,16 @@ components:
         type:
           type: string
           description: "The type of tool being defined: `function`"
-          enum:
-            - function
+          # enum:
+          #   - function
           x-stainless-const: true
         function:
           $ref: "#/components/schemas/FunctionObject"
       required:
         - type
         - function
-    AssistantsApiResponseFormatOption:
+    
+    ResponseFormatOption:
       description: >
         Specifies the format that the model must output. Compatible with
         [GPT-4o](/docs/models#gpt-4o), [GPT-4
@@ -11901,46 +11920,52 @@ components:
         partially cut off if `finish_reason="length"`, which indicates the
         generation exceeded `max_tokens` or the conversation exceeded the max
         context length.
-      # oneOf:
-      type: string
+      oneOf:
+      # type: string
       # description: |
       #   `auto` is the default value
-      enum:
-        - auto
-      x-stainless-const: true
-        # - $ref: "#/components/schemas/ResponseFormatText"
-        # - $ref: "#/components/schemas/ResponseFormatJsonObject"
-        # - $ref: "#/components/schemas/ResponseFormatJsonSchema"
+      # enum:
+      #   - auto
+      # x-stainless-const: true
+        - $ref: "#/components/schemas/ResponseFormatText"
+        - $ref: "#/components/schemas/ResponseFormatJsonObject"
+        - $ref: "#/components/schemas/ResponseFormatJsonSchema"
+      discriminator:
+        propertyName: type
+        mapping:
+          text: "#/components/schemas/ResponseFormatText"
+          json_object: "#/components/schemas/ResponseFormatJsonObject"
+          json_schema: "#/components/schemas/ResponseFormatJsonSchema"
       x-oaiExpandable: true
     AssistantsApiToolChoiceOption:
-      description: >
-        Controls which (if any) tool is called by the model.
+      $ref: "#/components/schemas/AssistantsNamedToolChoice"
+      # description: >
+      #   Controls which (if any) tool is called by the model.
 
-        `none` means the model will not call any tools and instead generates a
-        message.
+      #   `none` means the model will not call any tools and instead generates a
+      #   message.
 
-        `auto` is the default value and means the model can pick between
-        generating a message or calling one or more tools.
+      #   `auto` is the default value and means the model can pick between
+      #   generating a message or calling one or more tools.
 
-        `required` means the model must call one or more tools before responding
-        to the user.
+      #   `required` means the model must call one or more tools before responding
+      #   to the user.
 
-        Specifying a particular tool like `{"type": "file_search"}` or `{"type":
-        "function", "function": {"name": "my_function"}}` forces the model to
-        call that tool.
+      #   Specifying a particular tool like `{"type": "file_search"}` or `{"type":
+      #   "function", "function": {"name": "my_function"}}` forces the model to
+      #   call that tool.
       # oneOf:
-      type: string
+      # type: string
       # description: >
       #   `none` means the model will not call any tools and instead generates
       #   a message. `auto` means the model can pick between generating a
       #   message or calling one or more tools. `required` means the model
       #   must call one or more tools before responding to the user.
-      enum:
-        - none
-        - auto
-        - required
-        # - $ref: "#/components/schemas/AssistantsNamedToolChoice"
-      x-oaiExpandable: true
+      # enum:
+      #   - none
+      #   - auto
+      #   - required
+      # x-oaiExpandable: true
     AssistantsNamedToolChoice:
       type: object
       description: Specifies a tool the model should use. Use to force the model to
@@ -12781,19 +12806,19 @@ components:
         Messages sent by the model in response to user messages.
       properties:
         content:
-          x-oaiExpandable: true
-          nullable: true
-          oneOf:
-            - type: string
-              description: The contents of the assistant message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type. Can be one or more
-                of type `text`, or exactly one of type `refusal`.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/ChatCompletionRequestAssistantMessageContentPart"
-              minItems: 1
+          # x-oaiExpandable: true
+          # nullable: true
+          # oneOf:
+          #   - type: string
+          #     description: The contents of the assistant message.
+          #     title: Text content
+          type: array
+          # description: An array of content parts with a defined type. Can be one or more
+          #   of type `text`, or exactly one of type `refusal`.
+          title: Array of content parts
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestAssistantMessageContentPart"
+          minItems: 1
           description: >
             The contents of the assistant message. Required unless `tool_calls`
             or `function_call` is specified.
@@ -12803,8 +12828,8 @@ components:
           description: The refusal message by the assistant.
         role:
           type: string
-          enum:
-            - assistant
+          # enum:
+          #   - assistant
           description: The role of the messages author, in this case `assistant`.
           x-stainless-const: true
         name:
@@ -12853,7 +12878,11 @@ components:
       oneOf:
         - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
         - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartRefusal"
-      x-oaiExpandable: true
+      discriminator:
+        propertyName: type
+        mapping:
+          text: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+          refusal: "#/components/schemas/ChatCompletionRequestMessageContentPartRefusal"
     ChatCompletionRequestDeveloperMessage:
       type: object
       title: Developer message
@@ -12868,21 +12897,21 @@ components:
       properties:
         content:
           description: The contents of the developer message.
-          oneOf:
-            - type: string
-              description: The contents of the developer message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type. For developer
-                messages, only type `text` is supported.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-              minItems: 1
+          # oneOf:
+          #   - type: string
+          #     description: The contents of the developer message.
+          #     title: Text content
+          type: array
+          # description: An array of content parts with a defined type. For developer
+          #   messages, only type `text` is supported.
+          title: Array of content parts
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+          minItems: 1
         role:
           type: string
-          enum:
-            - developer
+          # enum:
+          #   - developer
           description: The role of the messages author, in this case `developer`.
           x-stainless-const: true
         name:
@@ -12899,8 +12928,8 @@ components:
       properties:
         role:
           type: string
-          enum:
-            - function
+          # enum:
+          #   - function
           description: The role of the messages author, in this case `function`.
           x-stainless-const: true
         content:
@@ -12922,7 +12951,15 @@ components:
         - $ref: "#/components/schemas/ChatCompletionRequestAssistantMessage"
         - $ref: "#/components/schemas/ChatCompletionRequestToolMessage"
         - $ref: "#/components/schemas/ChatCompletionRequestFunctionMessage"
-      x-oaiExpandable: true
+      discriminator:
+        propertyName: role
+        mapping:
+          system: "#/components/schemas/ChatCompletionRequestSystemMessage"
+          user: "#/components/schemas/ChatCompletionRequestUserMessage"
+          assistant: "#/components/schemas/ChatCompletionRequestAssistantMessage"
+          developer: "#/components/schemas/ChatCompletionRequestDeveloperMessage"
+          function: "#/components/schemas/ChatCompletionRequestFunctionMessage"
+          tool: "#/components/schemas/ChatCompletionRequestToolMessage"
     ChatCompletionRequestMessageContentPartAudio:
       type: object
       title: Audio content part
@@ -12931,8 +12968,8 @@ components:
       properties:
         type:
           type: string
-          enum:
-            - input_audio
+          # enum:
+          #   - input_audio
           description: The type of the content part. Always `input_audio`.
           x-stainless-const: true
         input_audio:
@@ -12963,8 +13000,8 @@ components:
       properties:
         type:
           type: string
-          enum:
-            - image_url
+          # enum:
+          #   - image_url
           description: The type of the content part.
           x-stainless-const: true
         image_url:
@@ -12994,8 +13031,8 @@ components:
       properties:
         type:
           type: string
-          enum:
-            - refusal
+          # enum:
+          #   - refusal
           description: The type of the content part.
           x-stainless-const: true
         refusal:
@@ -13012,8 +13049,8 @@ components:
       properties:
         type:
           type: string
-          enum:
-            - text
+          # enum:
+          #   - text
           description: The type of the content part.
           x-stainless-const: true
         text:
@@ -13036,21 +13073,21 @@ components:
       properties:
         content:
           description: The contents of the system message.
-          oneOf:
-            - type: string
-              description: The contents of the system message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type. For system messages,
-                only type `text` is supported.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/ChatCompletionRequestSystemMessageContentPart"
-              minItems: 1
+          # oneOf:
+          #   - type: string
+          #     description: The contents of the system message.
+          #     title: Text content
+          type: array
+          # description: An array of content parts with a defined type. For system messages,
+          #   only type `text` is supported.
+          title: Array of content parts
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestSystemMessageContentPart"
+          minItems: 1
         role:
           type: string
-          enum:
-            - system
+          # enum:
+          #   - system
           description: The role of the messages author, in this case `system`.
           x-stainless-const: true
         name:
@@ -13061,31 +13098,31 @@ components:
         - content
         - role
     ChatCompletionRequestSystemMessageContentPart:
-      oneOf:
-        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-      x-oaiExpandable: true
+      # oneOf:
+      $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+      # x-oaiExpandable: true
     ChatCompletionRequestToolMessage:
       type: object
       title: Tool message
       properties:
         role:
           type: string
-          enum:
-            - tool
+          # enum:
+          #   - tool
           description: The role of the messages author, in this case `tool`.
           x-stainless-const: true
         content:
-          oneOf:
-            - type: string
-              description: The contents of the tool message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type. For tool messages,
-                only type `text` is supported.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/ChatCompletionRequestToolMessageContentPart"
-              minItems: 1
+          # oneOf:
+          #   - type: string
+          #     description: The contents of the tool message.
+          #     title: Text content
+          type: array
+          description: An array of content parts with a defined type. For tool messages,
+            only type `text` is supported.
+          title: Array of content parts
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestToolMessageContentPart"
+          minItems: 1
           description: The contents of the tool message.
         tool_call_id:
           type: string
@@ -13095,9 +13132,9 @@ components:
         - content
         - tool_call_id
     ChatCompletionRequestToolMessageContentPart:
-      oneOf:
-        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-      x-oaiExpandable: true
+      # oneOf:
+      $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+      # x-oaiExpandable: true
     ChatCompletionRequestUserMessage:
       type: object
       title: User message
@@ -13109,22 +13146,22 @@ components:
           description: |
             The contents of the user message.
           # oneOf:
-          type: string
+          # type: string
           # description: The text contents of the message.
-          title: Text content
-            # - type: array
-            #   description: An array of content parts with a defined type. Supported options
-            #     differ based on the [model](/docs/models) being used to generate
-            #     the response. Can contain text, image, or audio inputs.
-            #   title: Array of content parts
-            #   items:
-            #     $ref: "#/components/schemas/ChatCompletionRequestUserMessageContentPart"
-            #   minItems: 1
+          # title: Text content
+          type: array
+            # description: An array of content parts with a defined type. Supported options
+            #      differ based on the [model](/docs/models) being used to generate
+            #      the response. Can contain text, image, or audio inputs.
+          title: Array of content parts
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestUserMessageContentPart"
+          minItems: 1
           x-oaiExpandable: true
         role:
           type: string
-          enum:
-            - user
+          # enum:
+          #   - user
           description: The role of the messages author, in this case `user`.
           x-stainless-const: true
         name:
@@ -13139,7 +13176,12 @@ components:
         - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
         - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartImage"
         - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartAudio"
-      x-oaiExpandable: true
+      discriminator:
+        propertyName: type
+        mapping:
+          text: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+          image_url: "#/components/schemas/ChatCompletionRequestMessageContentPartImage"
+          input_audio: "#/components/schemas/ChatCompletionRequestMessageContentPartAudio"
     ChatCompletionResponseMessage:
       type: object
       description: A chat completion message generated by the model.
@@ -13466,8 +13508,8 @@ components:
       properties:
         object:
           type: string
-          enum:
-            - organization.costs.result
+          # enum:
+          #   - organization.costs.result
           x-stainless-const: true
         amount:
           type: object
@@ -13549,11 +13591,7 @@ components:
           type: array
           maxItems: 128
           items:
-            oneOf:
-              - $ref: "#/components/schemas/AssistantToolsCode"
-              - $ref: "#/components/schemas/AssistantToolsFileSearch"
-              - $ref: "#/components/schemas/AssistantToolsFunction"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/AssistantTool"
         tool_resources:
           type: object
           description: >
@@ -13702,8 +13740,8 @@ components:
             We generally recommend altering this or temperature but not both.
         response_format:
           # allOf:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-          nullable: true
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # nullable: true
       required:
         - model
     CreateChatCompletionFunctionResponse:
@@ -14106,49 +14144,50 @@ components:
 
             to talk about new topics.
         response_format:
-          description: >
-            An object specifying the format that the model must output.
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # description: >
+          #   An object specifying the format that the model must output.
 
 
-            Setting to `{ "type": "json_schema", "json_schema": {...} }` enables
+          #   Setting to `{ "type": "json_schema", "json_schema": {...} }` enables
 
-            Structured Outputs which ensures the model will match your supplied
-            JSON
+          #   Structured Outputs which ensures the model will match your supplied
+          #   JSON
 
-            schema. Learn more in the [Structured Outputs
+          #   schema. Learn more in the [Structured Outputs
 
-            guide](/docs/guides/structured-outputs).
-
-
-            Setting to `{ "type": "json_object" }` enables JSON mode, which
-            ensures
-
-            the message the model generates is valid JSON.
+          #   guide](/docs/guides/structured-outputs).
 
 
-            **Important:** when using JSON mode, you **must** also instruct the
-            model
+          #   Setting to `{ "type": "json_object" }` enables JSON mode, which
+          #   ensures
 
-            to produce JSON yourself via a system or user message. Without this,
-            the
+          #   the message the model generates is valid JSON.
 
-            model may generate an unending stream of whitespace until the
-            generation
 
-            reaches the token limit, resulting in a long-running and seemingly
-            "stuck"
+          #   **Important:** when using JSON mode, you **must** also instruct the
+          #   model
 
-            request. Also note that the message content may be partially cut off
-            if
+          #   to produce JSON yourself via a system or user message. Without this,
+          #   the
 
-            `finish_reason="length"`, which indicates the generation exceeded
+          #   model may generate an unending stream of whitespace until the
+          #   generation
 
-            `max_tokens` or the conversation exceeded the max context length.
-          oneOf:
-            - $ref: "#/components/schemas/ResponseFormatText"
-            - $ref: "#/components/schemas/ResponseFormatJsonObject"
-            - $ref: "#/components/schemas/ResponseFormatJsonSchema"
-          x-oaiExpandable: true
+          #   reaches the token limit, resulting in a long-running and seemingly
+          #   "stuck"
+
+          #   request. Also note that the message content may be partially cut off
+          #   if
+
+          #   `finish_reason="length"`, which indicates the generation exceeded
+
+          #   `max_tokens` or the conversation exceeded the max context length.
+          # oneOf:
+          #   - $ref: "#/components/schemas/ResponseFormatText"
+          #   - $ref: "#/components/schemas/ResponseFormatJsonObject"
+          #   - $ref: "#/components/schemas/ResponseFormatJsonSchema"
+          # x-oaiExpandable: true
         seed:
           type: integer
           format: int64
@@ -15631,10 +15670,7 @@ components:
                 description: The tools to add this file to.
                 type: array
                 items:
-                  oneOf:
-                    - $ref: "#/components/schemas/AssistantToolsCode"
-                    - $ref: "#/components/schemas/AssistantToolsFileSearchTypeOnly"
-                  x-oaiExpandable: true
+                  $ref: "#/components/schemas/AssistantToolOrTypeOnly"
           description: A list of files attached to the message, and the tools they should
             be added to.
           required:
@@ -16158,11 +16194,7 @@ components:
           type: array
           maxItems: 20
           items:
-            oneOf:
-              - $ref: "#/components/schemas/AssistantToolsCode"
-              - $ref: "#/components/schemas/AssistantToolsFileSearch"
-              - $ref: "#/components/schemas/AssistantToolsFunction"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/AssistantTool"
         metadata:
           $ref: "#/components/schemas/Metadata"
         temperature:
@@ -16220,19 +16252,19 @@ components:
             for more info.
           minimum: 256
         truncation_strategy:
-          allOf:
-            - $ref: "#/components/schemas/TruncationObject"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/TruncationObject"
+          # - nullable: true
         tool_choice:
           # allOf:
           $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-          nullable: true
+          # nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
           # allOf:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-          nullable: true
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # nullable: true
       required:
         - assistant_id
     CreateSpeechRequest:
@@ -16243,12 +16275,12 @@ components:
           description: >
             One of the available [TTS models](/docs/models#tts): `tts-1` or
             `tts-1-hd`
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - tts-1
-                - tts-1-hd
+          # anyOf:
+          #   - type: string
+          type: string
+          enum:
+            - tts-1
+            - tts-1-hd
           x-oaiTypeLabel: string
         input:
           type: string
@@ -16310,34 +16342,34 @@ components:
             model associated with the assistant. If not, the model associated
             with the assistant will be used.
           example: gpt-4o
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - gpt-4o
-                - gpt-4o-2024-11-20
-                - gpt-4o-2024-08-06
-                - gpt-4o-2024-05-13
-                - gpt-4o-mini
-                - gpt-4o-mini-2024-07-18
-                - gpt-4-turbo
-                - gpt-4-turbo-2024-04-09
-                - gpt-4-0125-preview
-                - gpt-4-turbo-preview
-                - gpt-4-1106-preview
-                - gpt-4-vision-preview
-                - gpt-4
-                - gpt-4-0314
-                - gpt-4-0613
-                - gpt-4-32k
-                - gpt-4-32k-0314
-                - gpt-4-32k-0613
-                - gpt-3.5-turbo
-                - gpt-3.5-turbo-16k
-                - gpt-3.5-turbo-0613
-                - gpt-3.5-turbo-1106
-                - gpt-3.5-turbo-0125
-                - gpt-3.5-turbo-16k-0613
+          # anyOf:
+          #   - type: string
+          type: string
+          enum:
+            - gpt-4o
+            - gpt-4o-2024-11-20
+            - gpt-4o-2024-08-06
+            - gpt-4o-2024-05-13
+            - gpt-4o-mini
+            - gpt-4o-mini-2024-07-18
+            - gpt-4-turbo
+            - gpt-4-turbo-2024-04-09
+            - gpt-4-0125-preview
+            - gpt-4-turbo-preview
+            - gpt-4-1106-preview
+            - gpt-4-vision-preview
+            - gpt-4
+            - gpt-4-0314
+            - gpt-4-0613
+            - gpt-4-32k
+            - gpt-4-32k-0314
+            - gpt-4-32k-0613
+            - gpt-3.5-turbo
+            - gpt-3.5-turbo-16k
+            - gpt-3.5-turbo-0613
+            - gpt-3.5-turbo-1106
+            - gpt-3.5-turbo-0125
+            - gpt-3.5-turbo-16k-0613
           x-oaiTypeLabel: string
           nullable: true
         instructions:
@@ -16352,10 +16384,7 @@ components:
           type: array
           maxItems: 20
           items:
-            oneOf:
-              - $ref: "#/components/schemas/AssistantToolsCode"
-              - $ref: "#/components/schemas/AssistantToolsFileSearch"
-              - $ref: "#/components/schemas/AssistantToolsFunction"
+            $ref: "#/components/schemas/AssistantTool"
         tool_resources:
           type: object
           description: >
@@ -16448,19 +16477,19 @@ components:
             for more info.
           minimum: 256
         truncation_strategy:
-          allOf:
-            - $ref: "#/components/schemas/TruncationObject"
-            - nullable: true
+          # allOf:
+           $ref: "#/components/schemas/TruncationObject"
+          # nullable: true
         tool_choice:
           # allOf:
           $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-          nullable: true
+          # nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
           # allOf:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-          nullable: true
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # nullable: true
       required:
         - assistant_id
     CreateThreadRequest:
@@ -16613,12 +16642,12 @@ components:
             ID of the model to use. Only `whisper-1` (which is powered by our
             open source Whisper V2 model) is currently available.
           example: whisper-1
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - whisper-1
-              x-stainless-const: true
+          # anyOf:
+          #   - type: string
+          type: string
+          enum:
+            - whisper-1
+          x-stainless-const: true
           x-oaiTypeLabel: string
         language:
           description: >
@@ -16751,12 +16780,12 @@ components:
             ID of the model to use. Only `whisper-1` (which is powered by our
             open source Whisper V2 model) is currently available.
           example: whisper-1
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - whisper-1
-              x-stainless-const: true
+          # anyOf:
+          #   - type: string
+          type: string
+          enum:
+            - whisper-1
+          x-stainless-const: true
           x-oaiTypeLabel: string
         prompt:
           description: >
@@ -17652,9 +17681,9 @@ components:
           description: A list of integrations to enable for this fine-tuning job.
           maxItems: 5
           items:
-            oneOf:
-              - $ref: "#/components/schemas/FineTuningIntegration"
-            x-oaiExpandable: true
+            # oneOf:
+            $ref: "#/components/schemas/FineTuningIntegration"
+            # x-oaiExpandable: true
         seed:
           type: integer
           description: The seed used for the fine-tuning job.
@@ -18467,8 +18496,8 @@ components:
         type:
           description: Always `image_file`.
           type: string
-          enum:
-            - image_file
+          # enum:
+          #   - image_file
           x-stainless-const: true
         image_file:
           type: object
@@ -18500,8 +18529,8 @@ components:
       properties:
         type:
           type: string
-          enum:
-            - image_url
+          # enum:
+          #   - image_url
           description: The type of the content part.
           x-stainless-const: true
         image_url:
@@ -18535,8 +18564,8 @@ components:
         type:
           description: Always `refusal`.
           type: string
-          enum:
-            - refusal
+          # enum:
+          #   - refusal
           x-stainless-const: true
         refusal:
           type: string
@@ -18554,8 +18583,8 @@ components:
         type:
           description: Always `file_citation`.
           type: string
-          enum:
-            - file_citation
+          # enum:
+          #   - file_citation
           x-stainless-const: true
         text:
           description: The text in the message content that needs to be replaced.
@@ -18589,8 +18618,8 @@ components:
         type:
           description: Always `file_path`.
           type: string
-          enum:
-            - file_path
+          # enum:
+          #   - file_path
           x-stainless-const: true
         text:
           description: The text in the message content that needs to be replaced.
@@ -18623,8 +18652,8 @@ components:
         type:
           description: Always `text`.
           type: string
-          enum:
-            - text
+          # enum:
+          #   - text
           x-stainless-const: true
         text:
           type: object
@@ -18827,8 +18856,7 @@ components:
               type: array
               items:
                 oneOf:
-                  - $ref: "#/components/schemas/MessageDeltaContentTextAnnotationsFileCitationObjec\
-                      t"
+                  - $ref: "#/components/schemas/MessageDeltaContentTextAnnotationsFileCitationObject"
                   - $ref: "#/components/schemas/MessageDeltaContentTextAnnotationsFilePathObject"
                 x-oaiExpandable: true
       required:
@@ -18957,12 +18985,13 @@ components:
           description: The content of the message in array of text and/or images.
           type: array
           items:
-            oneOf:
-              - $ref: "#/components/schemas/MessageContentImageFileObject"
-              - $ref: "#/components/schemas/MessageContentImageUrlObject"
-              - $ref: "#/components/schemas/MessageContentTextObject"
-              - $ref: "#/components/schemas/MessageContentRefusalObject"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/MessageContentObject"
+#            oneOf:
+#              - $ref: "#/components/schemas/MessageContentImageFileObject"
+#              - $ref: "#/components/schemas/MessageContentImageUrlObject"
+#              - $ref: "#/components/schemas/MessageContentTextObject"
+#              - $ref: "#/components/schemas/MessageContentRefusalObject"
+#            x-oaiExpandable: true
         assistant_id:
           description: If applicable, the ID of the
             [assistant](/docs/api-reference/assistants) that authored this
@@ -18987,10 +19016,7 @@ components:
                 description: The tools to add this file to.
                 type: array
                 items:
-                  oneOf:
-                    - $ref: "#/components/schemas/AssistantToolsCode"
-                    - $ref: "#/components/schemas/AssistantToolsFileSearchTypeOnly"
-                  x-oaiExpandable: true
+                  $ref: "#/components/schemas/AssistantToolOrTypeOnly"
           description: A list of files attached to the message, and the tools they were
             added to.
           nullable: true
@@ -19035,6 +19061,19 @@ components:
             "attachments": [],
             "metadata": {}
           }
+    MessageContentObject:
+      oneOf:
+        - $ref: "#/components/schemas/MessageContentImageFileObject"
+        - $ref: "#/components/schemas/MessageContentImageUrlObject"
+        - $ref: "#/components/schemas/MessageContentTextObject"
+        - $ref: "#/components/schemas/MessageContentRefusalObject"
+      discriminator:
+        propertyName: type
+        mapping:
+          image_file: "#/components/schemas/MessageContentImageFileObject"
+          image_url: "#/components/schemas/MessageContentImageUrlObject"
+          text: "#/components/schemas/MessageContentTextObject"
+          refusal: "#/components/schemas/MessageContentRefusalObject"
     MessageRequestContentTextObject:
       title: Text
       type: object
@@ -19053,89 +19092,70 @@ components:
         - type
         - text
     MessageStreamEvent:
+      discriminator:
+        propertyName: event
+        mapping:
+          thread.message.created: "#/components/schemas/MessageCreatedEvent"
+          thread.message.in_progress: "#/components/schemas/MessageInProgressEvent"
+          thread.message.delta: "#/components/schemas/MessageDeltaEvent"
+          thread.message.completed: "#/components/schemas/MessageCompletedEvent"
+          thread.message.incomplete: "#/components/schemas/MessageIncompleteEvent"
       oneOf:
-        - type: object
-          properties:
-            event:
-              type: string
-              enum:
-                - thread.message.created
-              x-stainless-const: true
-            data:
-              $ref: "#/components/schemas/MessageObject"
-          required:
-            - event
-            - data
-          description: Occurs when a [message](/docs/api-reference/messages/object) is
-            created.
-          x-oaiMeta:
-            dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
-        - type: object
-          properties:
-            event:
-              type: string
-              enum:
-                - thread.message.in_progress
-              x-stainless-const: true
-            data:
-              $ref: "#/components/schemas/MessageObject"
-          required:
-            - event
-            - data
-          description: Occurs when a [message](/docs/api-reference/messages/object) moves
-            to an `in_progress` state.
-          x-oaiMeta:
-            dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
-        - type: object
-          properties:
-            event:
-              type: string
-              enum:
-                - thread.message.delta
-              x-stainless-const: true
-            data:
-              $ref: "#/components/schemas/MessageDeltaObject"
-          required:
-            - event
-            - data
-          description: Occurs when parts of a
-            [Message](/docs/api-reference/messages/object) are being streamed.
-          x-oaiMeta:
-            dataDescription: "`data` is a [message
-              delta](/docs/api-reference/assistants-streaming/message-delta-obj\
-              ect)"
-        - type: object
-          properties:
-            event:
-              type: string
-              enum:
-                - thread.message.completed
-              x-stainless-const: true
-            data:
-              $ref: "#/components/schemas/MessageObject"
-          required:
-            - event
-            - data
-          description: Occurs when a [message](/docs/api-reference/messages/object) is
-            completed.
-          x-oaiMeta:
-            dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
-        - type: object
-          properties:
-            event:
-              type: string
-              enum:
-                - thread.message.incomplete
-              x-stainless-const: true
-            data:
-              $ref: "#/components/schemas/MessageObject"
-          required:
-            - event
-            - data
-          description: Occurs when a [message](/docs/api-reference/messages/object) ends
-            before it is completed.
-          x-oaiMeta:
-            dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
+        - $ref: "#/components/schemas/MessageCreatedEvent"
+        - $ref: "#/components/schemas/MessageInProgressEvent"
+        - $ref: "#/components/schemas/MessageDeltaEvent"
+        - $ref: "#/components/schemas/MessageCompletedEvent"
+        - $ref: "#/components/schemas/MessageIncompleteEvent"
+    MessageCreatedEvent:
+      description: Occurs when a [message](/docs/api-reference/messages/object) is created.
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MessageObject"
+      required:
+        - data
+      x-oaiMeta:
+        dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
+    MessageInProgressEvent:
+      description: Occurs when a [message](/docs/api-reference/messages/object) moves to an `in_progress` state.
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MessageObject"
+      required:
+        - data
+      x-oaiMeta:
+        dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
+    MessageDeltaEvent:
+      description: Occurs when parts of a [Message](/docs/api-reference/messages/object) are being streamed.
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MessageDeltaObject"
+      required:
+        - data
+      x-oaiMeta:
+        dataDescription: "`data` is a [message delta](/docs/api-reference/assistants-streaming/message-delta-object)"
+    MessageCompletedEvent:
+      description: Occurs when a [message](/docs/api-reference/messages/object) is completed.
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MessageObject"
+      required:
+        - data
+      x-oaiMeta:
+        dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
+    MessageIncompleteEvent:
+      description: Occurs when a [message](/docs/api-reference/messages/object) ends before it is completed.
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MessageObject"
+      required:
+        - data
+      x-oaiMeta:
+        dataDescription: "`data` is a [message](/docs/api-reference/messages/object)"
     Metadata:
       type: object
       description: >
@@ -19193,14 +19213,14 @@ components:
       additionalProperties: false
       properties:
         model:
-          description: >
-            ID of the model to use. You can use the [List
-            models](/docs/api-reference/models/list) API to see all of your
-            available models, or see our [Model overview](/docs/models) for
-            descriptions of them.
-          anyOf:
-            - type: string
-            - $ref: "#/components/schemas/AssistantSupportedModels"
+        #  description: >
+        #    ID of the model to use. You can use the [List
+        #    models](/docs/api-reference/models/list) API to see all of your
+        #    available models, or see our [Model overview](/docs/models) for
+        #    descriptions of them.
+          # anyOf:
+          # type: string
+          $ref: "#/components/schemas/AssistantSupportedModels"
         reasoning_effort:
           $ref: "#/components/schemas/ReasoningEffort"
         name:
@@ -19232,11 +19252,7 @@ components:
           type: array
           maxItems: 128
           items:
-            oneOf:
-              - $ref: "#/components/schemas/AssistantToolsCode"
-              - $ref: "#/components/schemas/AssistantToolsFileSearch"
-              - $ref: "#/components/schemas/AssistantToolsFunction"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/AssistantTool"
         tool_resources:
           type: object
           description: >
@@ -19302,8 +19318,8 @@ components:
             We generally recommend altering this or temperature but not both.
         response_format:
           # allOf:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-          nullable: true
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # nullable: true
     ModifyMessageRequest:
       type: object
       additionalProperties: false
@@ -19435,8 +19451,8 @@ components:
         type:
           type: string
           description: Always `other`.
-          enum:
-            - other
+          # enum:
+          #   - other
           x-stainless-const: true
       required:
         - type
@@ -19467,28 +19483,28 @@ components:
             currently always `content`.
           x-stainless-const: true
         content:
-          x-oaiExpandable: true
-          description: >
-            The content that should be matched when generating a model response.
+          # x-oaiExpandable: true
+          # description: >
+          #   The content that should be matched when generating a model response.
 
-            If generated tokens would match this content, the entire model
-            response
+          #   If generated tokens would match this content, the entire model
+          #   response
 
-            can be returned much more quickly.
-          oneOf:
-            - type: string
-              title: Text content
-              description: |
-                The content used for a Predicted Output. This is often the
-                text of a file you are regenerating with minor changes.
-            - type: array
-              description: An array of content parts with a defined type. Supported options
-                differ based on the [model](/docs/models) being used to generate
-                the response. Can contain text inputs.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-              minItems: 1
+          #   can be returned much more quickly.
+          # oneOf:
+            # - type: string
+            #   title: Text content
+            #   description: |
+            #     The content used for a Predicted Output. This is often the
+            #     text of a file you are regenerating with minor changes.
+          type: array
+          description: An array of content parts with a defined type. Supported options
+            differ based on the [model](/docs/models) being used to generate
+            the response. Can contain text inputs.
+          title: Array of content parts
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+          minItems: 1
     Project:
       type: object
       description: Represents an individual project.
@@ -20167,7 +20183,7 @@ components:
         If successful, the server will respond with a
         `conversation.item.truncated` 
 
-        event. 
+        event.
       properties:
         event_id:
           type: string
@@ -22726,15 +22742,15 @@ components:
         model:
           description: |
             The Realtime model used for this session.
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - gpt-4o-realtime-preview
-                - gpt-4o-realtime-preview-2024-10-01
-                - gpt-4o-realtime-preview-2024-12-17
-                - gpt-4o-mini-realtime-preview
-                - gpt-4o-mini-realtime-preview-2024-12-17
+          # anyOf:
+          #   - type: string
+          type: string
+          enum:
+            - gpt-4o-realtime-preview
+            - gpt-4o-realtime-preview-2024-10-01
+            - gpt-4o-realtime-preview-2024-12-17
+            - gpt-4o-mini-realtime-preview
+            - gpt-4o-mini-realtime-preview-2024-12-17
         instructions:
           type: string
           description: >
@@ -23442,8 +23458,8 @@ components:
         type:
           type: string
           description: "The type of response format being defined: `json_object`"
-          enum:
-            - json_object
+          # enum:
+          #   - json_object
           x-stainless-const: true
       required:
         - type
@@ -23453,8 +23469,8 @@ components:
         type:
           type: string
           description: "The type of response format being defined: `json_schema`"
-          enum:
-            - json_schema
+          # enum:
+          #   - json_schema
           x-stainless-const: true
         json_schema:
           type: object
@@ -23493,8 +23509,8 @@ components:
         type:
           type: string
           description: "The type of response format being defined: `text`"
-          enum:
-            - text
+          # enum:
+          #   - text
           x-stainless-const: true
       required:
         - type
@@ -23650,11 +23666,7 @@ components:
           type: array
           maxItems: 20
           items:
-            oneOf:
-              - $ref: "#/components/schemas/AssistantToolsCode"
-              - $ref: "#/components/schemas/AssistantToolsFileSearch"
-              - $ref: "#/components/schemas/AssistantToolsFunction"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/AssistantTool"
         metadata:
           $ref: "#/components/schemas/Metadata"
         usage:
@@ -23684,19 +23696,19 @@ components:
             over the course of the run.
           minimum: 256
         truncation_strategy:
-          allOf:
-            - $ref: "#/components/schemas/TruncationObject"
-            - nullable: true
+          # allOf:
+          $ref: "#/components/schemas/TruncationObject"
+          # nullable: true
         tool_choice:
           # allOf:
           $ref: "#/components/schemas/AssistantsApiToolChoiceOption"
-          nullable: true
+          # nullable: true
         parallel_tool_calls:
           $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
           # allOf:
-          $ref: "#/components/schemas/AssistantsApiResponseFormatOption"
-          nullable: true
+          $ref: "#/components/schemas/ResponseFormatOption"
+          # nullable: true
       required:
         - id
         - object
@@ -23803,12 +23815,8 @@ components:
           type: object
           properties:
             step_details:
-              type: object
-              description: The details of the run step.
-              oneOf:
-                - $ref: "#/components/schemas/RunStepDeltaStepDetailsMessageCreationObject"
-                - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsObject"
-              x-oaiExpandable: true
+              $ref: "#/components/schemas/RunStepDeltaStepDetailsObject"
+              # x-oaiExpandable: true
       required:
         - id
         - object
@@ -23834,6 +23842,15 @@ components:
               }
             }
           }
+    RunStepDeltaStepDetailsObject:
+      oneOf:
+        - $ref: "#/components/schemas/RunStepDeltaStepDetailsMessageCreationObject"
+        - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsObject"
+      discriminator:
+        propertyName: type
+        mapping:
+          message_creation: "#/components/schemas/RunStepDeltaStepDetailsMessageCreationObject"
+          tool_calls: "#/components/schemas/RunStepDeltaStepDetailsToolCallsObject"
     RunStepDeltaStepDetailsMessageCreationObject:
       title: Message creation
       type: object
@@ -23842,8 +23859,8 @@ components:
         type:
           description: Always `message_creation`.
           type: string
-          enum:
-            - message_creation
+          # enum:
+          #   - message_creation
           x-stainless-const: true
         message_creation:
           type: object
@@ -23868,8 +23885,8 @@ components:
           type: string
           description: The type of tool call. This is always going to be
             `code_interpreter` for this type of tool call.
-          enum:
-            - code_interpreter
+          # enum:
+          #   - code_interpreter
           x-stainless-const: true
         code_interpreter:
           type: object
@@ -23885,16 +23902,24 @@ components:
                 (`image`). Each of these are represented by a different object
                 type.
               items:
-                type: object
-                oneOf:
-                  - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputLogsObjec\
-                      t"
-                  - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputImageObje\
-                      ct"
-                x-oaiExpandable: true
+                $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputObject"
+                # type: object
+                # oneOf:
+                #   - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputLogsObject"
+                #   - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputImageObject"
+                # x-oaiExpandable: true
       required:
         - index
         - type
+    RunStepDeltaStepDetailsToolCallsCodeOutputObject:
+      oneOf:
+        - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputImageObject"
+        - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputLogsObject"
+      discriminator:
+        propertyName: type
+        mapping:
+          image: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputImageObject"
+          logs: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeOutputLogsObject"
     RunStepDeltaStepDetailsToolCallsCodeOutputImageObject:
       title: Code interpreter image output
       type: object
@@ -23905,8 +23930,8 @@ components:
         type:
           description: Always `image`.
           type: string
-          enum:
-            - image
+          # enum:
+          #   - image
           x-stainless-const: true
         image:
           type: object
@@ -23928,8 +23953,8 @@ components:
         type:
           description: Always `logs`.
           type: string
-          enum:
-            - logs
+          # enum:
+          #   - logs
           x-stainless-const: true
         logs:
           type: string
@@ -23951,8 +23976,8 @@ components:
           type: string
           description: The type of tool call. This is always going to be `file_search` for
             this type of tool call.
-          enum:
-            - file_search
+          # enum:
+          #   - file_search
           x-stainless-const: true
         file_search:
           type: object
@@ -23976,8 +24001,8 @@ components:
           type: string
           description: The type of tool call. This is always going to be `function` for
             this type of tool call.
-          enum:
-            - function
+          # enum:
+          #   - function
           x-stainless-const: true
         function:
           type: object
@@ -24006,8 +24031,8 @@ components:
         type:
           description: Always `tool_calls`.
           type: string
-          enum:
-            - tool_calls
+          # enum:
+          #   - tool_calls
           x-stainless-const: true
         tool_calls:
           type: array
@@ -24016,13 +24041,25 @@ components:
             associated with one of three types of tools: `code_interpreter`,
             `file_search`, or `function`.
           items:
-            oneOf:
-              - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeObject"
-              - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFileSearchObject"
-              - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFunctionObject"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsObjectItem"
+            # oneOf:
+            #   - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeObject"
+            #   - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFileSearchObject"
+            #   - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFunctionObject"
+            # x-oaiExpandable: true
       required:
         - type
+    RunStepDeltaStepDetailsToolCallsObjectItem:
+      oneOf:
+        - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeObject"
+        - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFileSearchObject"
+        - $ref: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFunctionObject"
+      discriminator:
+        propertyName: type
+        mapping:
+          code_interpreter: "#/components/schemas/RunStepDeltaStepDetailsToolCallsCodeObject"
+          file_search: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFileSearchObject"
+          function: "#/components/schemas/RunStepDeltaStepDetailsToolCallsFunctionObject"
     RunStepDetailsMessageCreationObject:
       title: Message creation
       type: object
@@ -24031,8 +24068,8 @@ components:
         type:
           description: Always `message_creation`.
           type: string
-          enum:
-            - message_creation
+          # enum:
+          #   - message_creation
           x-stainless-const: true
         message_creation:
           type: object
@@ -24057,8 +24094,8 @@ components:
           type: string
           description: The type of tool call. This is always going to be
             `code_interpreter` for this type of tool call.
-          enum:
-            - code_interpreter
+          # enum:
+          #   - code_interpreter
           x-stainless-const: true
         code_interpreter:
           type: object
@@ -24077,15 +24114,26 @@ components:
                 (`image`). Each of these are represented by a different object
                 type.
               items:
-                type: object
-                oneOf:
-                  - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputLogsObject"
-                  - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputImageObject"
-                x-oaiExpandable: true
+                $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputObject"
+                # type: object
+                # oneOf:
+                #   - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputLogsObject"
+                #   - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputImageObject"
+                # x-oaiExpandable: true
       required:
         - id
         - type
         - code_interpreter
+
+    RunStepDetailsToolCallsCodeOutputObject:
+      oneOf:
+        - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputImageObject"
+        - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeOutputLogsObject"
+      discriminator:
+        propertyName: type
+        mapping:
+          image: "#/components/schemas/RunStepDetailsToolCallsCodeOutputImageObject"
+          logs: "#/components/schemas/RunStepDetailsToolCallsCodeOutputLogsObject"
     RunStepDetailsToolCallsCodeOutputImageObject:
       title: Code Interpreter image output
       type: object
@@ -24093,8 +24141,8 @@ components:
         type:
           description: Always `image`.
           type: string
-          enum:
-            - image
+          # enum:
+          #   - image
           x-stainless-const: true
         image:
           type: object
@@ -24115,8 +24163,8 @@ components:
         type:
           description: Always `logs`.
           type: string
-          enum:
-            - logs
+          # enum:
+          #   - logs
           x-stainless-const: true
         logs:
           type: string
@@ -24135,8 +24183,8 @@ components:
           type: string
           description: The type of tool call. This is always going to be `file_search` for
             this type of tool call.
-          enum:
-            - file_search
+          # enum:
+          #   - file_search
           x-stainless-const: true
         file_search:
           type: object
@@ -24224,8 +24272,8 @@ components:
           type: string
           description: The type of tool call. This is always going to be `function` for
             this type of tool call.
-          enum:
-            - function
+          # enum:
+          #   - function
           x-stainless-const: true
         function:
           type: object
@@ -24259,8 +24307,8 @@ components:
         type:
           description: Always `tool_calls`.
           type: string
-          enum:
-            - tool_calls
+          # enum:
+          #   - tool_calls
           x-stainless-const: true
         tool_calls:
           type: array
@@ -24269,14 +24317,27 @@ components:
             associated with one of three types of tools: `code_interpreter`,
             `file_search`, or `function`.
           items:
-            oneOf:
-              - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeObject"
-              - $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchObject"
-              - $ref: "#/components/schemas/RunStepDetailsToolCallsFunctionObject"
-            x-oaiExpandable: true
+            $ref: "#/components/schemas/RunStepDetailsToolCallsObjectItem"
+
+            # oneOf:
+            #   - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeObject"
+            #   - $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchObject"
+            #   - $ref: "#/components/schemas/RunStepDetailsToolCallsFunctionObject"
+            # x-oaiExpandable: true
       required:
         - type
         - tool_calls
+    RunStepDetailsToolCallsObjectItem:
+      oneOf:
+        - $ref: "#/components/schemas/RunStepDetailsToolCallsCodeObject"
+        - $ref: "#/components/schemas/RunStepDetailsToolCallsFileSearchObject"
+        - $ref: "#/components/schemas/RunStepDetailsToolCallsFunctionObject"
+      discriminator:
+        propertyName: type
+        mapping:
+          code_interpreter: "#/components/schemas/RunStepDetailsToolCallsCodeObject"
+          file_search: "#/components/schemas/RunStepDetailsToolCallsFileSearchObject"
+          function: "#/components/schemas/RunStepDetailsToolCallsFunctionObject"
     RunStepObject:
       type: object
       title: Run steps
@@ -24325,12 +24386,13 @@ components:
             - completed
             - expired
         step_details:
-          type: object
-          description: The details of the run step.
-          oneOf:
-            - $ref: "#/components/schemas/RunStepDetailsMessageCreationObject"
-            - $ref: "#/components/schemas/RunStepDetailsToolCallsObject"
-          x-oaiExpandable: true
+          $ref: "#/components/schemas/RunStepDetailsObject"
+          # type: object
+          # description: The details of the run step.
+          # oneOf:
+          #   - $ref: "#/components/schemas/RunStepDetailsMessageCreationObject"
+          #   - $ref: "#/components/schemas/RunStepDetailsToolCallsObject"
+          # x-oaiExpandable: true
         last_error:
           type: object
           description: The last error associated with this run step. Will be `null` if
@@ -24417,6 +24479,15 @@ components:
               "total_tokens": 579
             }
           }
+    RunStepDetailsObject:
+      oneOf:
+        - $ref: "#/components/schemas/RunStepDetailsMessageCreationObject"
+        - $ref: "#/components/schemas/RunStepDetailsToolCallsObject"
+      discriminator:
+        propertyName: type
+        mapping:
+          message_creation: "#/components/schemas/RunStepDetailsMessageCreationObject"
+          tool_calls: "#/components/schemas/RunStepDetailsToolCallsObject"
     RunStepStreamEvent:
       oneOf:
         - type: object
@@ -24769,8 +24840,8 @@ components:
         type:
           type: string
           description: Always `static`.
-          enum:
-            - static
+          # enum:
+          #   - static
           x-stainless-const: true
         static:
           $ref: "#/components/schemas/StaticChunkingStrategy"
@@ -25001,9 +25072,9 @@ components:
           type: string
           nullable: true
         expires_after:
-          allOf:
-            - $ref: "#/components/schemas/VectorStoreExpirationAfter"
-            - nullable: true
+        #  allOf:
+          $ref: "#/components/schemas/VectorStoreExpirationAfter"
+          #  - nullable: true
         metadata:
           $ref: "#/components/schemas/Metadata"
     Upload:
@@ -25048,10 +25119,10 @@ components:
             - upload
           x-stainless-const: true
         file:
-          allOf:
-            - $ref: "#/components/schemas/OpenAIFile"
-            - nullable: true
-              description: The ready File object after the Upload is completed.
+          # allOf:
+          $ref: "#/components/schemas/OpenAIFile"
+            # - nullable: true
+            #   description: The ready File object after the Upload is completed.
       required:
         - bytes
         - created_at
@@ -25124,8 +25195,8 @@ components:
       properties:
         object:
           type: string
-          enum:
-            - organization.usage.audio_speeches.result
+          # enum:
+          #   - organization.usage.audio_speeches.result
           x-stainless-const: true
         characters:
           type: integer
@@ -25176,8 +25247,8 @@ components:
       properties:
         object:
           type: string
-          enum:
-            - organization.usage.audio_transcriptions.result
+          # enum:
+          #   - organization.usage.audio_transcriptions.result
           x-stainless-const: true
         seconds:
           type: integer
@@ -25228,8 +25299,8 @@ components:
       properties:
         object:
           type: string
-          enum:
-            - organization.usage.code_interpreter_sessions.result
+          # enum:
+          #   - organization.usage.code_interpreter_sessions.result
           x-stainless-const: true
         num_sessions:
           type: integer
@@ -25256,8 +25327,8 @@ components:
       properties:
         object:
           type: string
-          enum:
-            - organization.usage.completions.result
+          # enum:
+          #   - organization.usage.completions.result
           x-stainless-const: true
         input_tokens:
           type: integer
@@ -25336,8 +25407,8 @@ components:
       properties:
         object:
           type: string
-          enum:
-            - organization.usage.embeddings.result
+          # enum:
+          #   - organization.usage.embeddings.result
           x-stainless-const: true
         input_tokens:
           type: integer
@@ -25387,8 +25458,8 @@ components:
       properties:
         object:
           type: string
-          enum:
-            - organization.usage.images.result
+          # enum:
+          #   - organization.usage.images.result
           x-stainless-const: true
         images:
           type: integer
@@ -25451,8 +25522,8 @@ components:
       properties:
         object:
           type: string
-          enum:
-            - organization.usage.moderations.result
+          # enum:
+          #   - organization.usage.moderations.result
           x-stainless-const: true
         input_tokens:
           type: integer
@@ -25532,29 +25603,53 @@ components:
         result:
           type: array
           items:
-            oneOf:
-              - $ref: "#/components/schemas/UsageCompletionsResult"
-              - $ref: "#/components/schemas/UsageEmbeddingsResult"
-              - $ref: "#/components/schemas/UsageModerationsResult"
-              - $ref: "#/components/schemas/UsageImagesResult"
-              - $ref: "#/components/schemas/UsageAudioSpeechesResult"
-              - $ref: "#/components/schemas/UsageAudioTranscriptionsResult"
-              - $ref: "#/components/schemas/UsageVectorStoresResult"
-              - $ref: "#/components/schemas/UsageCodeInterpreterSessionsResult"
-              - $ref: "#/components/schemas/CostsResult"
+            $ref: "#/components/schemas/UsageResult"
+            # oneOf:
+            #   - $ref: "#/components/schemas/UsageCompletionsResult"
+            #   - $ref: "#/components/schemas/UsageEmbeddingsResult"
+            #   - $ref: "#/components/schemas/UsageModerationsResult"
+            #   - $ref: "#/components/schemas/UsageImagesResult"
+            #   - $ref: "#/components/schemas/UsageAudioSpeechesResult"
+            #   - $ref: "#/components/schemas/UsageAudioTranscriptionsResult"
+            #   - $ref: "#/components/schemas/UsageVectorStoresResult"
+            #   - $ref: "#/components/schemas/UsageCodeInterpreterSessionsResult"
+            #   - $ref: "#/components/schemas/CostsResult"
       required:
         - object
         - start_time
         - end_time
         - result
+    UsageResult:
+      oneOf:
+        - $ref: "#/components/schemas/UsageCompletionsResult"
+        - $ref: "#/components/schemas/UsageEmbeddingsResult"
+        - $ref: "#/components/schemas/UsageModerationsResult"
+        - $ref: "#/components/schemas/UsageImagesResult"
+        - $ref: "#/components/schemas/UsageAudioSpeechesResult"
+        - $ref: "#/components/schemas/UsageAudioTranscriptionsResult"
+        - $ref: "#/components/schemas/UsageVectorStoresResult"
+        - $ref: "#/components/schemas/UsageCodeInterpreterSessionsResult"
+        - $ref: "#/components/schemas/CostsResult"
+      discriminator:
+        propertyName: object
+        mapping:
+          organization.usage.completions.result: "#/components/schemas/UsageCompletionsResult"
+          organization.usage.embeddings.result: "#/components/schemas/UsageEmbeddingsResult"
+          organization.usage.moderations.result: "#/components/schemas/UsageModerationsResult"
+          organization.usage.images.result: "#/components/schemas/UsageImagesResult"
+          organization.usage.audio_speeches.result: "#/components/schemas/UsageAudioSpeechesResult"
+          organization.usage.audio_transcriptions.result: "#/components/schemas/UsageAudioTranscriptionsResult"
+          organization.usage.vector_stores.result: "#/components/schemas/UsageVectorStoresResult"
+          organization.usage.code_interpreter_sessions.result: "#/components/schemas/UsageCodeInterpreterSessionsResult"
+          organization.costs.result: "#/components/schemas/CostsResult"
     UsageVectorStoresResult:
       type: object
       description: The aggregated vector stores usage details of the specific time bucket.
       properties:
         object:
           type: string
-          enum:
-            - organization.usage.vector_stores.result
+          # enum:
+          #   - organization.usage.vector_stores.result
           x-stainless-const: true
         usage_bytes:
           type: integer
@@ -25831,12 +25926,13 @@ components:
             - code
             - message
         chunking_strategy:
-          type: object
-          description: The strategy used to chunk the file.
-          oneOf:
-            - $ref: "#/components/schemas/StaticChunkingStrategyResponseParam"
-            - $ref: "#/components/schemas/OtherChunkingStrategyResponseParam"
-          x-oaiExpandable: true
+          $ref: "#/components/schemas/ChunkingStrategyResponseParam"
+          # type: object
+          # description: The strategy used to chunk the file.
+          # oneOf:
+          #   - $ref: "#/components/schemas/StaticChunkingStrategyResponseParam"
+          #   - $ref: "#/components/schemas/OtherChunkingStrategyResponseParam"
+          # x-oaiExpandable: true
       required:
         - id
         - object
@@ -25865,6 +25961,16 @@ components:
               }
             }
           }
+    
+    ChunkingStrategyResponseParam:
+      oneOf:
+        - $ref: "#/components/schemas/StaticChunkingStrategyResponseParam"
+        - $ref: "#/components/schemas/OtherChunkingStrategyResponseParam"
+      discriminator:
+        propertyName: type
+        mapping:
+          static: "#/components/schemas/StaticChunkingStrategyResponseParam"
+          other: "#/components/schemas/OtherChunkingStrategyResponseParam"
     VectorStoreObject:
       type: object
       title: Vector store
